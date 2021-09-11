@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import UserCreate from './UserCreate';
 import LanguageContext from '../context/LanguageContext';
+import ColorContext from '../context/ColorContext';
+import LanguageSelector from './LanguageSelector';
 
 const App = () => {
-  const [state, setState] = useState(null);
+  const [state, setState] = useState('english');
 
   const onLanguageChnage = (Language) => {
     setState(Language);
@@ -11,14 +13,12 @@ const App = () => {
 
   return (
     <div className=' ui container '>
-      <div>
-        Select Language:
-        <i className=' flag us' onClick={() => onLanguageChnage('english')}></i>
-        <i className=' flag in' onClick={() => onLanguageChnage('hindi')}></i>
-      </div>
-      <LanguageContext.Provider value={state}>
-        <UserCreate />
-      </LanguageContext.Provider>
+      <LanguageSelector onLanguageChnage={onLanguageChnage} />
+      <ColorContext.Provider value='red'>
+        <LanguageContext.Provider value={state}>
+          <UserCreate />
+        </LanguageContext.Provider>
+      </ColorContext.Provider>
     </div>
   );
 };
