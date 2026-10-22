@@ -28,7 +28,8 @@ Shared style for every still: _soft 3D illustration, clay-like materials, night-
 - Stills: Pillow to WebP, quality 78, resized to the sizes above.
 - Clips: `ffmpeg`, H.264 (`+faststart`) and VP9, no audio. The developer clip is cropped to 4:3 around the character. Posters are each clip's own first frame, so nothing jumps when it starts.
 - Clips load with `preload="none"` and play only while on screen (`src/components/LoopVideo.tsx`), and never with reduced motion. The service worker doesn't precache them.
-- The flow MCP's known wrong-tile bug hit three stills (the café, the documents and the developer portrait came down as old Pixe images). The right ones were fetched again by their Flow titles with `flow_download` and checked by eye before use. Flow still has three older Pixe images carrying the titles `translateplus-scene-02`, `-04` and `-11`; the MCP has no rename tool, so they were left as they are.
+- Every still was requested with `model: "Nano Banana Pro"` and every clip with `model: "Omni 1.1 Flash"` (8s, 12 credits each). The first developer portrait went out without the model named, so it was remade with Nano Banana Pro; `developer.webp` is that remake. The developer clip was animated from the earlier portrait, so its first frame differs slightly from the landing card.
+- The flow MCP's known wrong-tile bug hit three stills (the café, the documents and the developer portrait came down as old Pixe images). The right ones were fetched again by their Flow titles with `flow_download` and checked by eye before use. It struck once more on the portrait remake. Because of it, Flow has three older Pixe images titled `translateplus-scene-02`, `-04` and `-11`, and the hero globe still is titled `translateplus-dev-pro-scene-01`; the MCP has no rename tool, so they were left as they are.
 
 ## Fonts
 
