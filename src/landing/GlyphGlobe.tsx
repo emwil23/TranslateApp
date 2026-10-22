@@ -184,14 +184,14 @@ function build() {
       uAtlas: { value: makeAtlas() },
       uMorph: { value: 0 },
       uTime: { value: 0 },
-      uSize: { value: 0.085 },
+      uSize: { value: 0.105 },
       uSpin: { value: new THREE.Matrix4() },
       uMarigold: { value: new THREE.Color('#ffb43a') },
       uPaper: { value: new THREE.Color('#eeebe3') },
       uIndigo: { value: new THREE.Color('#7c8cff') },
     },
   })
-  const targets = PHRASES.map((p) => phrasePoints(p.text, p.font, 3.4))
+  const targets = PHRASES.map((p) => phrasePoints(p.text, p.font, 2.8))
   return { geometry, material, targets }
 }
 

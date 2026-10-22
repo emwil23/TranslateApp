@@ -36,19 +36,30 @@ export default defineConfig({
       injectRegister: 'script-defer',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Pixe',
-        short_name: 'Pixe',
-        description: 'AI moodboards for creative direction',
-        theme_color: '#0E0D0C',
-        background_color: '#0E0D0C',
+        name: 'Translate+',
+        short_name: 'Translate+',
+        description: 'The translator that gets your tone',
+        theme_color: '#0D0E13',
+        background_color: '#0D0E13',
         display: 'standalone',
         start_url: '/app',
         icons: [
           { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' },
-          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: '/pwa-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
-        shortcuts: [{ name: 'New board', url: '/app?new=1' }],
+        shortcuts: [
+          { name: 'Conversation', url: '/app/conversation' },
+          { name: 'Camera', url: '/app/camera' },
+          { name: 'Phrasebook', url: '/app/phrasebook' },
+        ],
+        // Share text from another app straight into the workspace.
+        share_target: { action: '/app', method: 'GET', params: { text: 'text' } },
       },
       workbox: {
         // Take over as soon as a new version installs, so a deploy reaches open tabs on their next load.
@@ -56,7 +67,15 @@ export default defineConfig({
         clientsClaim: true,
         globPatterns: ['**/*.{js,css,svg,woff2,avif,webp,png}', 'shell/index.html'],
         // The hero video and the 3D bundle are landing-page extras; don't make every install download them.
-        globIgnores: ['**/media/*.mp4', '**/media/*.webm', '**/Hero3D-*.js'],
+        // CJK fonts alone are hundreds of files; they load on demand when that script appears.
+        globIgnores: [
+          '**/media/*.mp4',
+          '**/media/*.webm',
+          '**/GlyphGlobe-*.js',
+          '**/noto-sans-{jp,sc,kr}-*.woff2',
+          '**/pdf.worker*',
+        ],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/shell/index.html',
       },
     }),

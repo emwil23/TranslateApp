@@ -202,7 +202,7 @@ export function CameraPage() {
           onCancel={() => setLive(false)}
         />
       ) : !image ? (
-        <div className="border-line grid gap-6 rounded-3xl border border-dashed p-8 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="border-line grid grid-cols-1 gap-6 rounded-3xl border border-dashed p-8 md:grid-cols-[1fr_auto] md:items-center">
           <img
             src="/media/mode-camera.webp"
             alt=""
@@ -236,7 +236,7 @@ export function CameraPage() {
           </div>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[3fr_2fr]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[3fr_2fr]">
           <div className="relative overflow-hidden rounded-2xl">
             <img src={image.url} alt="" className="w-full" />
             {/* Boxes drawn in the photo's own pixel space, so they scale with it. */}

@@ -148,6 +148,10 @@
   white-space: pre;
   animation: drop-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+/* The same drop for a whole block of text, which still wraps. */
+.drop-block {
+  animation: drop-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
 
 /* The marigold line draws across before the translation drops from it. */
 @keyframes draw-line {

@@ -20,7 +20,7 @@ function relative(due: number, ui: string, now = Date.now()) {
   const rtf = new Intl.RelativeTimeFormat(ui, { numeric: 'auto' })
   const diff = due - now
   if (diff < 3_600_000) return rtf.format(Math.max(1, Math.round(diff / 60_000)), 'minute')
-  if (diff < DAY) return rtf.format(Math.round(diff / 3_600_000), 'hour')
+  if (diff < DAY * 0.8) return rtf.format(Math.round(diff / 3_600_000), 'hour')
   return rtf.format(Math.round(diff / DAY), 'day')
 }
 
@@ -61,7 +61,7 @@ export function Phrasebook() {
           {t('pb.empty')}
         </EmptyState>
       )}
-      <ul className="grid gap-4 sm:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {phrases?.map((p) => (
           <li key={p.id} className="border-line bg-surface relative rounded-2xl border p-5">
             <div className="bg-accent absolute inset-x-5 top-0 h-0.5 rounded-full" aria-hidden />

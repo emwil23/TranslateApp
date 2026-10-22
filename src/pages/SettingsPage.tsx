@@ -16,6 +16,8 @@ import {
   verifyEmailCode,
 } from '@/ai/supabase'
 import { PageHeader } from '@/components/PageHeader'
+import { UiLangToggle } from '@/components/UiLangToggle'
+import { hasDeviceTranslator } from '@/translate/device'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
 import { useSettings, type ProviderId, type Theme } from '@/stores/settings'
@@ -88,16 +90,58 @@ export function SettingsPage() {
         </div>
       </Section>
 
+      <Section id="translation" title="Translation">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-sm">Interface language</span>
+            <UiLangToggle />
+          </div>
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={s.preferDevice}
+              onChange={(e) => s.set({ preferDevice: e.target.checked })}
+              className="mt-1 accent-[var(--accent)]"
+            />
+            <span>
+              Translate on this device when the browser can
+              <span className="text-muted block">
+                {hasDeviceTranslator()
+                  ? 'Your browser has an on-device translator: plain translations are free, private and work offline.'
+                  : 'This browser has no on-device translator (Chrome 138+ on desktop does), so translations use your AI provider.'}
+              </span>
+            </span>
+          </label>
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={s.hinglish}
+              onChange={(e) => s.set({ hinglish: e.target.checked })}
+              className="mt-1 accent-[var(--accent)]"
+            />
+            <span>
+              Show Hindi in Latin letters (Hinglish) under Hindi translations
+              <span className="text-muted block">आप कैसे हैं → aap kaise hain</span>
+            </span>
+          </label>
+        </div>
+      </Section>
+
       <Section id="ai" title="AI">
         <p className="text-muted mb-4 max-w-prose text-sm">
-          AI is free in Pixe, never behind Pro. Pick where it runs. It sees your vibe, board text
-          and public stock photos, never images you upload. See the{' '}
+          AI is free in Translate+, never behind Pro. It handles tones, explanations, alternatives
+          and any translation your browser can't do on its own. It sees only the text you ask it to
+          work on. See the{' '}
           <Link to="/privacy" className="text-accent-text underline underline-offset-4">
             privacy page
           </Link>
           .
         </p>
-        <div role="radiogroup" aria-label="AI provider" className="grid gap-3 md:grid-cols-2">
+        <div
+          role="radiogroup"
+          aria-label="AI provider"
+          className="grid grid-cols-1 gap-3 md:grid-cols-2"
+        >
           {providers.map((p) => {
             const offered = p.offered()
             return (

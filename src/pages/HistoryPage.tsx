@@ -81,7 +81,7 @@ export function HistoryPage() {
                   {date.format(h.createdAt)}
                 </time>
               </div>
-              <div className="mt-2 grid gap-1 md:grid-cols-2 md:gap-6">
+              <div className="mt-2 grid grid-cols-1 gap-1 md:grid-cols-2 md:gap-6">
                 <p
                   dir="auto"
                   lang={h.from === 'auto' ? undefined : h.from}

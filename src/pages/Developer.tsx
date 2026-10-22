@@ -31,7 +31,8 @@ const STACK = [
   'TanStack Router',
   'Dexie',
   'Three.js / R3F',
-  'node-vibrant',
+  'Chrome Translator API',
+  'Tesseract.js',
   'GSAP',
   'Hono',
   'Supabase',
@@ -42,8 +43,7 @@ export function Developer() {
   const reduce = useReducedMotionSafe()
   return (
     <div className="relative overflow-hidden">
-      <div className="desk pointer-events-none absolute inset-0 opacity-60" aria-hidden />
-      <section className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pt-36 pb-20 md:grid-cols-[1.1fr_1fr]">
+      <section className="relative mx-auto grid max-w-6xl grid-cols-1 items-center gap-12 px-6 pt-36 pb-20 md:grid-cols-[1.1fr_1fr]">
         <div>
           <p className="spec text-accent-text">Meet the developer</p>
           <h1 className="font-display mt-4 text-6xl leading-[0.95] md:text-8xl">
@@ -51,10 +51,11 @@ export function Developer() {
           </h1>
           <p className="text-muted mt-6 max-w-lg text-lg">
             I design and build products end to end, from the 3D landing page to the API that keeps
-            the keys safe. Pixe started in 2021 as a photo search exercise; this is what it became
-            when I rebuilt it as a real creative tool.
+            the keys safe. Translate+ started in 2021 as a React Context exercise with two flag
+            buttons that swapped “Submit” for “Bhejo”. This is what it became when I rebuilt it as a
+            real translator.
           </p>
-          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Stack used in Pixe">
+          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Stack used in Translate+">
             {STACK.map((s) => (
               <li key={s} className="spec border-line text-muted rounded-full border px-3 py-1.5">
                 {s}
@@ -68,26 +69,32 @@ export function Developer() {
               </a>
             </Button>
             <Button asChild size="lg">
-              <a href="https://github.com/emwil23/pixe">Read the code</a>
+              <a href="https://github.com/emwil23/TranslateApp">Read the code</a>
             </Button>
           </div>
         </div>
 
         <div className="relative mx-auto w-full max-w-md">
           <div
-            className="from-accent/25 absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br via-transparent to-[#ff5a36]/25 blur-2xl"
+            className="from-accent/25 to-source/25 absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br via-transparent blur-2xl"
             aria-hidden
           />
-          <LoopVideo
-            src="/media/developer-loop"
-            poster="/media/developer-poster.webp"
-            label="Emmanuel's 3D character pinning a print to a moodboard wall, then smiling at the camera"
-            reduce={reduce}
-            eagerPoster
-            className="print relative aspect-[4/5] w-full rotate-[-1.5deg]"
-          />
-          <span className="spec border-line bg-surface absolute -bottom-4 left-6 rounded-full border px-3 py-1.5">
-            Art director · EWSTUDIOS
+          <div className="border-line bg-surface relative overflow-hidden rounded-3xl border">
+            <div
+              className="bg-accent absolute inset-x-6 top-0 z-10 h-0.5 rounded-full"
+              aria-hidden
+            />
+            <LoopVideo
+              src="/media/developer-loop"
+              poster="/media/developer-poster.webp"
+              label="Emmanuel's 3D character at his desk, smiling at the camera and typing, speech bubbles in different scripts floating around him"
+              reduce={reduce}
+              eagerPoster
+              className="relative aspect-[4/3] w-full"
+            />
+          </div>
+          <span className="spec border-line bg-surface absolute start-6 -bottom-4 rounded-full border px-3 py-1.5">
+            Developer · EWSTUDIOS
           </span>
         </div>
       </section>
@@ -96,19 +103,19 @@ export function Developer() {
         <h2 id="contact-h" className="font-display mb-6 text-4xl">
           Say hello
         </h2>
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {LINKS.map(({ href, label, handle, icon: Icon }) => (
             <li key={href}>
               <a
                 href={href}
                 className="group border-line bg-surface/60 hover:border-accent-text flex items-center gap-4 rounded-2xl border p-5 transition-colors"
               >
-                <Icon className="text-muted group-hover:text-accent-text-text size-6" aria-hidden />
+                <Icon className="text-muted group-hover:text-accent-text size-6" aria-hidden />
                 <span>
                   <span className="block font-medium">{label}</span>
                   <span className="spec text-muted">{handle}</span>
                 </span>
-                <ArrowUpRight className="text-muted ml-auto size-4" aria-hidden />
+                <ArrowUpRight className="text-muted ms-auto size-4" aria-hidden />
               </a>
             </li>
           ))}

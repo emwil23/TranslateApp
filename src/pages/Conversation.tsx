@@ -6,6 +6,7 @@ import { language } from '@/lib/languages'
 import { loadFontForLang } from '@/lib/scripts'
 import { canListen, canSpeak, listen, speak, type Recognition } from '@/lib/speech'
 import { useSettings } from '@/stores/settings'
+import { cleanReply } from '@/translate/clean'
 import { aiText, NoProviderError, translateAll } from '@/translate/engine'
 import { Link } from '@tanstack/react-router'
 import { FlipVertical2, Mic, Send, Volume2 } from 'lucide-react'
@@ -56,7 +57,7 @@ export function Conversation() {
       )?.text
       if (!translated)
         for await (const all of aiText('conversation', { text: said, from, to }, signal))
-          translated = all
+          translated = cleanReply(all, said)
       const final = translated ?? ''
       setTurns((all) => all.map((x) => (x.id === id ? { ...x, translated: final } : x)))
       if (final) speak(final, to)
@@ -204,7 +205,7 @@ function Half({
         aria-live="polite"
       >
         {turns.length === 0 && !listening && (
-          <li className="text-muted/70 font-display m-auto text-xl">{t('conv.empty')}</li>
+          <li className="text-muted font-display m-auto text-xl">{t('conv.empty')}</li>
         )}
         {turns.map((turn) => {
           const mine = turn.side === side

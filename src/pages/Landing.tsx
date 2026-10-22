@@ -1,3 +1,4 @@
+import { LoopVideo } from '@/components/LoopVideo'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n'
 import { prerendered, useReducedMotionSafe } from '@/lib/boot'
@@ -94,8 +95,9 @@ function usePhraseCycle(active: boolean) {
     if (!active) return
     const state = { m: 0 }
     const tl = gsap.timeline({ repeat: -1, delay: 1.2 })
-    tl.to(state, { m: 1, duration: 1.6, ease: 'power3.inOut' })
-      .call(() => setShown(phrase.current))
+    // The caption changes as the letters start to fly, so it names the phrase being spelled.
+    tl.call(() => setShown(phrase.current))
+      .to(state, { m: 1, duration: 1.6, ease: 'power3.inOut' })
       .to(state, { m: 1, duration: 2.4 })
       .to(state, { m: 0, duration: 1.3, ease: 'power2.inOut' })
       .call(() => {
@@ -149,9 +151,10 @@ function Hero({ can3D, reduce }: { can3D: boolean; reduce: boolean }) {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_30%_45%,color-mix(in_oklab,var(--accent)_10%,transparent),transparent)]"
         aria-hidden
       />
-      <div className="relative mx-auto grid min-h-dvh max-w-6xl items-center gap-10 px-6 pt-28 pb-16 md:grid-cols-[1.05fr_1fr]">
+      <div className="relative mx-auto grid min-h-dvh max-w-6xl grid-cols-1 items-center gap-10 px-6 pt-28 pb-16 md:grid-cols-[1.05fr_1fr]">
         <div className="relative order-2 md:order-1">
-          <div className="relative mx-auto aspect-square w-full max-w-[34rem]">
+          {/* The still fades out at its edges, so it sits on the page instead of in a box. */}
+          <div className="relative mx-auto aspect-square w-full max-w-[34rem] [mask-image:radial-gradient(closest-side,black_72%,transparent)]">
             <img
               src="/media/hero.webp"
               srcSet="/media/hero-828.webp 828w, /media/hero.webp 1280w"
@@ -161,7 +164,7 @@ function Hero({ can3D, reduce }: { can3D: boolean; reduce: boolean }) {
               height={720}
               fetchPriority="high"
               className={cn(
-                'absolute inset-0 size-full scale-125 object-cover transition-opacity duration-1000',
+                'absolute inset-0 size-full object-cover object-[44%_50%] transition-opacity duration-1000',
                 can3D && 'opacity-0',
               )}
             />
@@ -178,14 +181,14 @@ function Hero({ can3D, reduce }: { can3D: boolean; reduce: boolean }) {
           {/* The caption under the globe: the line, then the language now being spelled. */}
           <div className="mx-auto mt-2 max-w-[22rem]" aria-hidden>
             <div className="bg-accent h-0.5 rounded-full" />
-            <p key={current.lang} className="spec text-muted drop-in mt-3 text-center">
+            <p key={current.lang} className="spec text-muted drop-block mt-3 text-center">
               {current.label}
             </p>
             {!can3D && (
               <p
                 key={`t-${current.lang}`}
                 lang={current.lang}
-                className="font-display drop-in mt-1 text-center text-2xl"
+                className="font-display drop-block mt-1 text-center text-2xl"
               >
                 {current.text}
               </p>
@@ -310,7 +313,7 @@ function ToneDemo() {
         <p
           key={tone}
           lang="hi"
-          className="font-display drop-in mt-2 text-3xl leading-snug"
+          className="font-display drop-block mt-2 text-3xl leading-snug"
           aria-live="polite"
         >
           {TONE_DEMO[tone]}
@@ -370,7 +373,7 @@ function Story() {
       <h2 id="how-h" className="font-display mt-4 max-w-3xl text-5xl leading-tight md:text-6xl">
         {t('land.howH')}
       </h2>
-      <div className="mt-16 grid gap-12 md:grid-cols-2">
+      <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
         <div className="hidden md:block">
           <div className="sticky top-28">
             {active === 0 ? (
@@ -383,7 +386,7 @@ function Story() {
                 width={720}
                 height={540}
                 loading="lazy"
-                className="drop-in w-full rounded-3xl"
+                className="drop-block w-full rounded-3xl"
               />
             )}
           </div>
@@ -440,7 +443,7 @@ function Different() {
       <h2 id="diff-h" className="font-display max-w-3xl text-5xl leading-tight md:text-6xl">
         {t('land.diffH')}
       </h2>
-      <ul className="mt-12 grid gap-4 md:grid-cols-3">
+      <ul className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
         {cards.map((c) => (
           <li
             key={c.title}
@@ -474,14 +477,24 @@ function LanguageWall({ reduce }: { reduce: boolean }) {
   // Three rows drifting at different speeds, each language in its own script.
   const rows = [0, 1, 2].map((r) => LANGUAGES.filter((_, i) => i % 3 === r).map((l) => l))
   return (
-    <section aria-labelledby="langs-h" className="overflow-hidden py-24">
-      <div className="mx-auto max-w-6xl px-6">
+    <section aria-labelledby="langs-h" className="relative overflow-hidden py-24">
+      {/* The globe clip turns slowly behind the wall; it loads only when near and never with reduced motion. */}
+      <div className="pointer-events-none absolute inset-y-0 end-0 w-full max-w-3xl [mask-image:radial-gradient(closest-side,black_55%,transparent)] opacity-50">
+        <LoopVideo
+          src="/media/hero"
+          poster="/media/hero-poster.webp"
+          label=""
+          reduce={reduce}
+          className="size-full"
+        />
+      </div>
+      <div className="relative mx-auto max-w-6xl px-6">
         <h2 id="langs-h" className="font-display max-w-3xl text-5xl leading-tight md:text-6xl">
           {t('land.langsH', { n: LANGUAGES.length })}
         </h2>
         <p className="text-muted mt-4 max-w-xl text-lg">{t('land.langsB')}</p>
       </div>
-      <div className="mt-12 flex flex-col gap-4" aria-hidden>
+      <div className="relative mt-12 flex flex-col gap-4" aria-hidden>
         {rows.map((row, r) => (
           <div
             key={r}
@@ -515,7 +528,7 @@ function Pricing() {
   const t = useT()
   return (
     <section aria-labelledby="price-h" className="mx-auto max-w-6xl px-6 py-24">
-      <div className="hang-accent grid gap-10 md:grid-cols-[1fr_1.4fr] md:items-end">
+      <div className="hang-accent grid grid-cols-1 gap-10 md:grid-cols-[1fr_1.4fr] md:items-end">
         <div>
           <h2 id="price-h" className="font-display text-5xl leading-tight">
             {t('land.priceH')}
@@ -527,7 +540,7 @@ function Pricing() {
             </Link>
           </Button>
         </div>
-        <ul className="grid gap-3 sm:grid-cols-3">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {PLANS.map((p) => (
             <li
               key={p.name}
@@ -553,7 +566,7 @@ function DeveloperCard() {
   const t = useT()
   return (
     <section aria-labelledby="dev-h" className="mx-auto max-w-6xl px-6 pb-28">
-      <div className="border-line bg-surface grid items-center gap-8 overflow-hidden rounded-3xl border md:grid-cols-[1fr_1.2fr]">
+      <div className="border-line bg-surface grid grid-cols-1 items-center gap-8 overflow-hidden rounded-3xl border md:grid-cols-[1fr_1.2fr]">
         <img
           src="/media/developer.webp"
           alt={t('land.devAlt')}

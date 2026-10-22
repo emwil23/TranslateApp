@@ -37,7 +37,7 @@ export function Glossary() {
     <AppPage title={t('gl.title')} lead={t('gl.lead')}>
       <form
         onSubmit={(e) => void add(e)}
-        className="border-line bg-surface grid gap-3 rounded-2xl border p-4 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end"
+        className="border-line bg-surface grid grid-cols-1 gap-3 rounded-2xl border p-4 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end"
       >
         <label className="text-sm">
           <span className="text-muted mb-1 block">{t('gl.source')}</span>

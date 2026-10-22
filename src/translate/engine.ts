@@ -5,6 +5,7 @@ import { protectTerms, termsFor, termsIn, type Term } from '@/lib/glossary'
 import { guessFromScript } from '@/lib/scripts'
 import { needsAi, type Tone } from '@/lib/tones'
 import { useSettings } from '@/stores/settings'
+import { cleanReply } from './clean'
 import { detectOnDevice, deviceAvailability, translateOnDevice } from './device'
 
 export class NoProviderError extends Error {
@@ -133,7 +134,8 @@ export async function* translate(
     ...(req.respect && { respect: req.respect }),
     terms: termsIn(req.text, terms).map(({ source, target }) => ({ source, target })),
   }
-  for await (const text of aiText(action, input, signal)) yield { type: 'text', text }
+  for await (const text of aiText(action, input, signal))
+    yield { type: 'text', text: cleanReply(text, req.text) }
 }
 
 /** Runs a translation to the end and returns the result; for batch work like documents and camera text. */

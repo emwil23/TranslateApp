@@ -199,7 +199,7 @@ export function Workspace() {
     <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-8 md:py-10">
       <h1 className="sr-only">{t('nav.translate')}</h1>
 
-      <div className="relative grid gap-4 md:grid-cols-2 md:gap-6">
+      <div className="relative grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
         {/* Source sheet: hangs from the indigo line. */}
         <section
           aria-label={t('ws.source')}
@@ -412,7 +412,9 @@ export function Workspace() {
                   disabled={!sourceText.trim()}
                 >
                   {aiNeeded && <Sparkles />} {t('ws.translate')}
-                  <kbd className="spec hidden opacity-60 lg:inline">Ctrl ↵</kbd>
+                  <kbd className="spec hidden opacity-60 lg:inline" aria-hidden>
+                    Ctrl ↵
+                  </kbd>
                 </Button>
               )
             )}

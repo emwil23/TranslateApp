@@ -54,7 +54,8 @@ export function LoopVideo({
       loop
       playsInline
       preload="none"
-      aria-label={label}
+      // A purely decorative clip has an empty label and is hidden from screen readers.
+      {...(label ? { 'aria-label': label } : { 'aria-hidden': true })}
     >
       <source src={`${src}.webm`} type="video/webm" />
       <source src={`${src}.mp4`} type="video/mp4" />

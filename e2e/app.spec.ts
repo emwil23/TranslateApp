@@ -1,121 +1,202 @@
 import AxeBuilder from '@axe-core/playwright'
-import { expect, test, type Page } from '@playwright/test'
-import { readFileSync } from 'node:fs'
+import { expect, test, type Page, type Route } from '@playwright/test'
 
-// The app is built with VITE_API_URL=http://api.test (playwright.config.ts); every API call and photo is
-// answered here, so the tests need no keys and no network.
-const IMAGE = readFileSync(new URL('../public/media/tile-1.webp', import.meta.url))
-type Source = 'unsplash' | 'pexels' | 'openverse'
+// Playwright's Chromium has no on-device translator, so every translation goes to the AI provider. The
+// tests pick "your own key" with a made-up OpenAI-compatible host and answer it here: no keys, no network.
+const AI = 'http://ai.test/v1'
+const HINDI = 'आप कैसे हैं?'
 
-const photo = (source: Source, n: number, q: string) => ({
-  id: `${source}:${q}-${n}`,
-  source,
-  width: 800,
-  height: n % 2 ? 1000 : 600,
-  color: '#7a4b2a',
-  alt: `${q} ${n}`,
-  thumb: `http://img.test/${source}-${n}.webp`,
-  src: `http://img.test/${source}-${n}.webp`,
-  pageUrl: `https://example.com/${source}/${n}`,
-  author: { name: `${source} author ${n}`, url: `https://example.com/@${source}${n}` },
-  license:
-    source === 'openverse'
-      ? { name: 'CC BY 2.0', url: 'https://creativecommons.org/licenses/by/2.0/' }
-      : null,
-  downloadLocation: source === 'unsplash' ? `https://api.unsplash.com/photos/${n}/download` : null,
-})
+interface ChatBody {
+  messages: { role: string; content: string }[]
+}
 
-async function mockApi(page: Page) {
-  await page.route('http://api.test/api/photos/*/search*', (route) => {
-    const url = new URL(route.request().url())
-    const source = url.pathname.split('/')[3] as Source
-    const q = url.searchParams.get('q') ?? ''
+/** The prompt's <data> blocks; the last one is what the user asked to translate or explain. */
+const blocks = (prompt: string) =>
+  [...prompt.matchAll(/<data>\n([\s\S]*?)\n<\/data>/g)].map((m) => JSON.parse(m[1]) as unknown)
+const dataOf = (prompt: string) => blocks(prompt).at(-1)
+
+function reply(prompt: string): string {
+  if (prompt.includes('Explain this translation'))
+    return '## Meaning and nuance\nA polite way to ask how someone is.\n## Verb forms\n| Tense | Form |\n|---|---|\n| Present | है |'
+  if (prompt.includes('suggest up to 4 alternatives'))
+    return '{"text": "कैसी", "note": "Feminine form"}\n{"text": "किस तरह", "note": "More literal"}'
+  if (prompt.includes('one part of a longer document')) {
+    return (dataOf(prompt) as string)
+      .split('\n')
+      .map((l) => (l ? `[hi] ${l}` : l))
+      .join('\n')
+  }
+  return HINDI
+}
+
+async function mockAi(page: Page, seen: string[] = []) {
+  await page.route(`${AI}/**`, async (route: Route) => {
+    const headers = {
+      'access-control-allow-origin': '*',
+      'access-control-allow-headers': '*',
+      'access-control-allow-methods': 'POST, OPTIONS',
+    }
+    if (route.request().method() === 'OPTIONS') return route.fulfill({ status: 204, headers })
+    const body = route.request().postDataJSON() as ChatBody
+    const prompt = body.messages.at(-1)?.content ?? ''
+    seen.push(prompt)
+    const content = reply(prompt)
     return route.fulfill({
-      json: { photos: [1, 2, 3].map((n) => photo(source, n, q)), hasMore: false },
-      headers: { 'access-control-allow-origin': '*' },
+      headers: { ...headers, 'content-type': 'text/event-stream' },
+      body: `data: ${JSON.stringify({ choices: [{ delta: { content } }] })}\n\ndata: [DONE]\n\n`,
     })
   })
-  await page.route('http://api.test/api/photos/unsplash/download', (route) =>
-    route.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } }),
-  )
-  await page.route('http://img.test/**', (route) =>
-    route.fulfill({
-      body: IMAGE,
-      contentType: 'image/webp',
-      headers: { 'access-control-allow-origin': '*' },
-    }),
+}
+
+/** Starts the app with "your own key" pointed at the mock, English → Hindi. */
+async function withProvider(page: Page, extra: Record<string, unknown> = {}) {
+  await page.addInitScript(
+    ([ai, more]) =>
+      localStorage.setItem(
+        'translateplus-settings',
+        JSON.stringify({
+          state: { provider: 'own', ownKey: 'test', ownBaseUrl: ai, from: 'en', to: 'hi', ...more },
+          version: 0,
+        }),
+      ),
+    [AI, extra] as const,
   )
 }
 
-test.beforeEach(async ({ page }) => {
-  await mockApi(page)
-})
-
 test('landing tells the story and links into the app @mobile', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Describe a vibe')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Say it like you mean it.')
+  // The page is prerendered; React takes over after the load event.
+  await page.waitForLoadState('networkidle')
   await expect(page.getByText('Made with')).toContainText('EWSTUDIOS')
-  await expect(page.getByRole('heading', { name: /four moves/i })).toBeVisible()
-  await page.getByRole('link', { name: 'Open Pixe' }).click()
+  await expect(page.getByRole('heading', { name: /five ways to use it/i })).toBeVisible()
+  // The tone demo works without any AI.
+  await page.getByRole('radio', { name: 'Business email' }).first().click()
+  await expect(page.getByText(/पुनर्निर्धारित/).first()).toBeVisible()
+  // Back to the top, where nothing scrolls under the fixed header.
+  await page.evaluate('window.scrollTo(0, 0)')
+  await page.getByRole('link', { name: 'Open Translate+' }).click()
   await expect(page).toHaveURL(/\/app$/)
-  await expect(page.getByRole('heading', { name: /light table is empty/i })).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'Text to translate' })).toBeVisible()
 })
 
-test('vibe → board → palette export', async ({ page }) => {
+test('translate → save → flashcard', async ({ page }) => {
+  await mockAi(page)
+  await withProvider(page)
   await page.goto('/app')
-  await page.getByRole('button', { name: 'Describe a vibe' }).click()
-  await page.getByRole('textbox', { name: 'Vibe' }).fill('cozy autumn café, film grain')
-  await page.getByRole('button', { name: 'Build the board' }).click()
+  await page.getByRole('textbox', { name: 'Text to translate' }).fill('How are you?')
+  await page.getByRole('button', { name: 'Translate', exact: true }).click()
+  const output = page.getByRole('region', { name: 'Translation' })
+  await expect(output).toContainText(HINDI)
+  // Hindi output also shows in Latin letters.
+  await expect(output).toContainText('aap kaise hain?')
+  await expect(output.getByText('AI', { exact: true })).toBeVisible()
 
-  // Without an AI provider the vibe's own phrases are the searches: 2 queries × 3 photos each, deduped.
-  await expect(page).toHaveURL(/\/app\/board\//)
-  const prints = page.locator('[data-item-id]')
-  await expect(prints).toHaveCount(6)
-  await expect(page.getByRole('list', { name: 'Board palette' })).toBeVisible()
+  await page.getByRole('button', { name: 'Save to phrasebook' }).click()
+  await expect(page.getByText('Saved to your phrasebook')).toBeVisible()
 
-  // The list view shows every photo with its credit.
-  await page.getByRole('button', { name: 'List view' }).click()
-  const list = page.getByRole('list', { name: 'Board items' })
-  await expect(list.getByText('Photo by unsplash author 1 on Unsplash').first()).toBeVisible()
-  await expect(list.getByText(/via Openverse/).first()).toBeVisible()
-  await page.getByRole('button', { name: 'List view' }).click()
+  await page.getByRole('link', { name: 'Phrasebook' }).first().click()
+  await expect(page.getByText(HINDI)).toBeVisible()
+  await page.getByRole('button', { name: /Practise/ }).click()
+  await expect(page.getByText('How are you?')).toBeVisible()
+  await page.getByRole('button', { name: 'Show answer' }).click()
+  await page.getByRole('button', { name: 'Good' }).click()
+  await expect(page.getByText('Done for now. 1 reviewed.')).toBeVisible()
+  await page.getByRole('button', { name: 'Back to the list' }).first().click()
+  await expect(page.getByText(/Next review in 1 day|Next review tomorrow/)).toBeVisible()
 
-  // Export the board's palette as CSS variables from the Palette page.
-  await page.getByRole('link', { name: 'Palette' }).click()
-  await page.getByLabel("Or use a board's palette").selectOption({ label: 'Cozy autumn café' })
-  await expect(page.getByRole('tabpanel', { name: 'CSS variables' })).toContainText('--colour-1: #')
+  // The translation is in History too.
+  await page.getByRole('link', { name: 'History' }).first().click()
+  await expect(page.getByText(HINDI)).toBeVisible()
+})
+
+test('tones, respect levels and the glossary reach the prompt', async ({ page }) => {
+  const seen: string[] = []
+  await mockAi(page, seen)
+  await withProvider(page)
+  await page.goto('/app/glossary')
+  await page.getByRole('textbox', { name: 'Term' }).fill('EWSTUDIOS')
+  await page.getByRole('button', { name: 'Add term' }).click()
+  await expect(page.getByText('Keep as is').last()).toBeVisible()
+
+  await page.getByRole('link', { name: 'Translate', exact: true }).first().click()
+  await page.getByRole('textbox', { name: 'Text to translate' }).fill('Made by EWSTUDIOS')
+  await page.getByRole('radio', { name: 'WhatsApp' }).click()
+  await page.getByRole('radio', { name: /tum/ }).click()
+  await page.getByRole('button', { name: 'Translate', exact: true }).click()
+  await expect(page.getByRole('region', { name: 'Translation' })).toContainText(HINDI)
+  const prompt = seen.at(-1) ?? ''
+  expect(prompt).toContain('short chat message')
+  expect(prompt).toContain('तुम (tum)')
+  expect(blocks(prompt)).toEqual([
+    [{ source: 'EWSTUDIOS', target: 'EWSTUDIOS' }],
+    'Made by EWSTUDIOS',
+  ])
+})
+
+test('explain and alternatives', async ({ page }) => {
+  await mockAi(page)
+  await withProvider(page)
+  await page.goto('/app?text=How%20are%20you%3F')
+  await page.getByRole('button', { name: 'Translate', exact: true }).click()
+  await expect(page.getByRole('region', { name: 'Translation' })).toContainText(HINDI)
+
+  await page.getByRole('button', { name: 'Explain' }).click()
+  const sheet = page.getByRole('dialog', { name: 'Why it says this' })
+  await expect(sheet.getByRole('heading', { name: 'Meaning and nuance' })).toBeVisible()
+  await expect(sheet.getByRole('cell', { name: 'है' })).toBeVisible()
+  await page.keyboard.press('Escape')
+
+  await page.getByRole('button', { name: 'Alternatives' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'कैसे' }).click()
+  await page.getByRole('button', { name: /किस तरह/ }).click()
+  await expect(page.getByRole('region', { name: 'Translation' })).toContainText('आप किस तरह हैं?')
+})
+
+test('a text document translates line by line and downloads', async ({ page }) => {
+  await mockAi(page)
+  await withProvider(page)
+  await page.goto('/app/documents')
+  await page.locator('input[type=file]').setInputFiles({
+    name: 'notes.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('First line.\n\nSecond line.'),
+  })
+  await expect(page.getByText('notes.txt')).toBeVisible()
+  await page.getByLabel('Allow AI for this document').check()
+  await page.getByRole('button', { name: 'Translate document' }).click()
+  await expect(page.getByRole('region', { name: 'Translated' })).toContainText('[hi] Second line.')
   const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: /Download palette.css/ }).click()
-  expect((await download).suggestedFilename()).toBe('palette.css')
+  await page.getByRole('button', { name: /Download notes.hi.txt/ }).click()
+  expect((await download).suggestedFilename()).toBe('notes.hi.txt')
 })
 
-test('board items move with the keyboard', async ({ page }) => {
+test('documents stay on the device unless AI is allowed', async ({ page }) => {
+  const seen: string[] = []
+  await mockAi(page, seen)
+  await withProvider(page)
+  await page.goto('/app/documents')
+  await page.locator('input[type=file]').setInputFiles({
+    name: 'private.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('Confidential.'),
+  })
+  await page.getByRole('button', { name: 'Translate document' }).click()
+  await expect(page.getByRole('alert')).toContainText("can't translate this pair on your device")
+  expect(seen).toEqual([])
+})
+
+test('the interface switches to Hindi @mobile', async ({ page }) => {
   await page.goto('/app')
-  await page.getByRole('button', { name: 'Describe a vibe' }).click()
-  await page.getByRole('textbox', { name: 'Vibe' }).fill('linen')
-  await page.getByRole('button', { name: 'Build the board' }).click()
-  const first = page.locator('[data-item-id]').first()
-  await expect(first).toBeVisible()
-  const left = async () =>
-    Number(/left: (-?\d+)px/.exec((await first.getAttribute('style')) ?? '')?.[1])
-  const before = await left()
-  await first.focus()
-  await page.keyboard.press('Shift+ArrowRight')
-  await expect.poll(left).toBe(before + 40)
-  await expect(page.getByRole('tab', { name: 'Selected' })).toHaveAttribute('aria-selected', 'true')
-  await page.keyboard.press('Delete')
-  await expect(page.locator('[data-item-id]')).toHaveCount(2)
+  await page.getByRole('radio', { name: 'हिन्दी' }).first().click()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'hi')
+  await expect(page.getByRole('link', { name: 'वाक्यकोश' }).first()).toBeVisible()
+  await expect(page.getByRole('textbox', { name: 'अनुवाद के लिए पाठ' })).toBeVisible()
 })
 
-test('discover merges every source and adds to a board', async ({ page }) => {
-  await page.goto('/app/discover?q=ceramics')
-  const results = page.getByRole('list', { name: 'Search results' })
-  await expect(results.getByRole('listitem')).toHaveCount(9)
-  await results
-    .getByRole('button', { name: /Add to board: ceramics 1/ })
-    .first()
-    .click()
-  await expect(page.getByText(/Added to/)).toBeVisible()
+test('unknown pages get the designed 404', async ({ page }) => {
+  await page.goto('/nowhere')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('lost in translation')
 })
 
 const PAGES = [
@@ -125,10 +206,13 @@ const PAGES = [
   '/privacy',
   '/terms',
   '/app',
-  '/app/discover?q=dunes',
-  '/app/palette',
+  '/app/conversation',
+  '/app/camera',
+  '/app/documents',
+  '/app/phrasebook',
+  '/app/glossary',
+  '/app/history',
   '/settings',
-  '/b/abc',
   '/nowhere',
 ]
 
@@ -138,7 +222,7 @@ for (const path of PAGES) {
       await page.addInitScript(
         (t) =>
           localStorage.setItem(
-            'pixe-settings',
+            'translateplus-settings',
             JSON.stringify({ state: { theme: t }, version: 0 }),
           ),
         theme,

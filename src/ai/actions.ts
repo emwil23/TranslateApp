@@ -79,6 +79,19 @@ const glossaryRule = (t: unknown[]) =>
   t.length
     ? 'Follow the glossary exactly: wherever a source term appears, write its target exactly as given.\n'
     : ''
+// The glossary and the text go in separate data blocks, and the reply rule comes last: Flash-Lite
+// sometimes answered a single JSON block by echoing it back.
+const body = (i: { text: string; terms: { source: string; target: string }[] }) =>
+  `${
+    i.terms.length
+      ? `Glossary (source term → required target):
+${data(i.terms)}
+`
+      : ''
+  }Text to translate:
+${data(i.text)}
+Reply with the translated text only: plain text, no JSON, no tags, no quotes, no notes.`
+
 const source = (f: string) => (f === 'auto' ? 'its language' : f)
 const style = (i: TranslateInput) =>
   `${TONES[i.tone]} ${i.respect ? (RESPECT[i.respect] ?? '') : ''}`
@@ -87,8 +100,7 @@ const templates: { [A in ActionName]: (i: ActionInputs[A]) => string } = {
   translate: (i) => `Translate the text from ${source(i.from)} into ${i.to}.
 ${style(i)}
 ${glossaryRule(i.terms)}Keep line breaks, numbers, names, URLs and placeholders like ⟦0⟧ as they are.
-Reply with the translation only.
-${data({ text: i.text, glossary: i.terms })}`,
+${body(i)}`,
   alternatives: (
     i,
   ) => `In this ${i.to} translation, suggest up to 4 alternatives for "word" that fit the sentence and keep the source's meaning.
@@ -113,8 +125,8 @@ ${data(i)}`,
   ) => `This is one part of a longer document. Translate it from ${source(i.from)} into ${i.to}.
 ${style(i)}
 ${glossaryRule(i.terms)}Each line is a separate paragraph or subtitle line: reply with exactly the same number of lines, in the same order, each translated on its own line. Keep empty lines empty.
-Keep numbers, names, URLs and placeholders like ⟦0⟧ as they are. Reply with the translation only.
-${data({ text: i.text, glossary: i.terms })}`,
+Keep numbers, names, URLs and placeholders like ⟦0⟧ as they are.
+${body(i)}`,
   conversation: (
     i,
   ) => `Someone said this out loud in a face-to-face conversation; it came from speech recognition, so fix obvious mishearings.

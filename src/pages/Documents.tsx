@@ -235,7 +235,7 @@ export function Documents() {
             )}
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <section
               aria-label={t('doc.original')}
               className="border-line bg-surface relative max-h-[60vh] overflow-y-auto rounded-2xl border p-5"
