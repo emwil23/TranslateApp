@@ -1,6 +1,6 @@
 import { useSettings } from '@/stores/settings'
 
-const VERIFIER = 'pixe-or-verifier'
+const VERIFIER = 'translateplus-or-verifier'
 
 const base64url = (bytes: ArrayBuffer | Uint8Array) =>
   btoa(String.fromCharCode(...new Uint8Array(bytes)))

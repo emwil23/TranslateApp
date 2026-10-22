@@ -81,14 +81,14 @@ function chat(
   input: unknown,
   signal: AbortSignal,
 ) {
-  const { system, prompt, image } = buildPrompt(action, input as never)
+  const { system, prompt } = buildPrompt(action, input as never)
   return fetch(url, {
     method: 'POST',
     signal,
     headers: {
       authorization: `Bearer ${key}`,
       'content-type': 'application/json',
-      'X-Title': 'Pixe',
+      'X-Title': 'Translate+',
       'HTTP-Referer': location.origin,
     },
     body: JSON.stringify({
@@ -96,15 +96,7 @@ function chat(
       stream: true,
       messages: [
         { role: 'system', content: system },
-        {
-          role: 'user',
-          content: image
-            ? [
-                { type: 'text', text: prompt },
-                { type: 'image_url', image_url: { url: image } },
-              ]
-            : prompt,
-        },
+        { role: 'user', content: prompt },
       ],
     }),
   })
@@ -125,12 +117,6 @@ declare global {
         chat: {
           (
             messages: { role: 'system' | 'user'; content: string }[],
-            opts: { stream: true; signal?: AbortSignal },
-          ): Promise<AsyncIterable<PuterChunk>>
-          /** A prompt about one image at a public URL. */
-          (
-            prompt: string,
-            imageUrl: string,
             opts: { stream: true; signal?: AbortSignal },
           ): Promise<AsyncIterable<PuterChunk>>
         }
@@ -166,7 +152,7 @@ export function loadPuter(): Promise<void> {
 export const providers: Provider[] = [
   {
     id: 'ew',
-    label: 'Pixe AI (free)',
+    label: 'Translate+ AI (free)',
     blurb:
       'Gemini through our server. Sign in by email; 30 calls a day. Not available in the EEA, UK or Switzerland, or under 18.',
     offered: () => Boolean(API_URL) && supabaseConfigured && !inBlockedRegion(),
@@ -174,7 +160,7 @@ export const providers: Provider[] = [
     async *run(action, input, signal) {
       const token = await getAccessToken()
       if (!token || !API_URL) throw new Error('Please sign in in Settings first.')
-      const res = await fetch(`${API_URL}/api/ai/pixe/${action}`, {
+      const res = await fetch(`${API_URL}/api/ai/translateplus/${action}`, {
         method: 'POST',
         signal,
         headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
@@ -193,22 +179,14 @@ export const providers: Provider[] = [
     async *run(action, input, signal) {
       await loadPuter()
       if (!window.puter) throw new Error('Puter did not load.')
-      const { system, prompt, image } = buildPrompt(action, input)
-      const stream = image
-        ? await window.puter.ai.chat(
-            `${system}
-
-${prompt}`,
-            image,
-            { stream: true, signal },
-          )
-        : await window.puter.ai.chat(
-            [
-              { role: 'system', content: system },
-              { role: 'user', content: prompt },
-            ],
-            { stream: true, signal },
-          )
+      const { system, prompt } = buildPrompt(action, input)
+      const stream = await window.puter.ai.chat(
+        [
+          { role: 'system', content: system },
+          { role: 'user', content: prompt },
+        ],
+        { stream: true, signal },
+      )
       for await (const part of stream)
         if ((part.type ?? 'text') === 'text' && part.text) yield part.text
     },
