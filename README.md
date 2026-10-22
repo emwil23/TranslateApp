@@ -6,7 +6,7 @@
 
 Translate into 125 languages, then choose how it should sound: formal, casual, friendly, WhatsApp or business email. Talk face to face, point the camera at a sign, drop in a Word file, and keep what you learn as flashcards. Plain translations run on your device; AI handles the tone.
 
-**[translateplus.ewstudios.workers.dev](https://translateplus.ewstudios.workers.dev)** (launching) · [The shared API](https://github.com/emwil23/ew-apps-api)
+**[translateplus.ewstudios.workers.dev](https://translateplus.ewstudios.workers.dev)** · [The shared API](https://github.com/emwil23/ew-apps-api)
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square)
@@ -159,7 +159,7 @@ flowchart LR
 | Version           | Concept                                                                                                                  | Why it changed                                                                |
 | :---------------- | :----------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------- |
 | v1 (2021)         | A React 17 Context exercise: two flags swap "Submit" and "Bhejo"                                                         | Not a translator, the input kept no state, and the README was CRA boilerplate |
-| **v2 (Oct 2026)** | A tone-aware translator: on-device first, conversation, camera, documents, flashcards, an interface in English and Hindi | Ready to launch                                                               |
+| **v2 (Oct 2026)** | A tone-aware translator: on-device first, conversation, camera, documents, flashcards, an interface in English and Hindi | Live                                                                          |
 
 ## How it was made
 
