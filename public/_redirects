@@ -3,4 +3,3 @@
 /app      /shell/  200
 /app/*    /shell/  200
 /settings /shell/  200
-/b/*      /shell/  200

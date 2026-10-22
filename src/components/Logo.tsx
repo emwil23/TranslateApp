@@ -1,15 +1,28 @@
 import { cn } from '@/lib/cn'
 
-/** The Pixe mark: a tilted print on the light table, with one bright pixel in it. */
+/**
+ * The Translate+ mark: a plus whose top bar is a shirorekha, with one stroke hanging from it that reads as
+ * both a Latin "T" and the Devanagari "त".
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 32 32" className={cn('size-7', className)} aria-hidden="true">
-      <rect width="32" height="32" rx="8" fill="var(--accent)" />
-      <g transform="rotate(-8 16 16)">
-        <rect x="8" y="6.5" width="16" height="19" rx="1.5" fill="var(--accent-ink)" />
-        <rect x="10" y="8.5" width="12" height="11" fill="var(--accent)" />
-        <rect x="16.5" y="11" width="3.5" height="3.5" fill="var(--accent-ink)" />
-      </g>
+      <rect width="32" height="32" rx="9" fill="var(--accent)" />
+      <path d="M6 10h20" stroke="var(--accent-ink)" strokeWidth="3" strokeLinecap="round" />
+      <path d="M16 10v15" stroke="var(--accent-ink)" strokeWidth="3" strokeLinecap="round" />
+      <path
+        d="M16 17.5c-3.6 0-6-1.6-6-4"
+        fill="none"
+        stroke="var(--accent-ink)"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M21 19.5h5M23.5 17v5"
+        stroke="var(--accent-ink)"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -18,7 +31,9 @@ export function Logo({ className }: { className?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-2', className)}>
       <LogoMark />
-      <span className="font-display text-2xl leading-none italic">Pixe</span>
+      <span className="font-display text-xl leading-none font-semibold tracking-tight">
+        Translate<span className="text-accent-text">+</span>
+      </span>
     </span>
   )
 }

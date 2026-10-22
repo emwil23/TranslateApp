@@ -13,14 +13,49 @@ function inline(text: string): ReactNode[] {
   )
 }
 
-/** The small Markdown the brief uses: ## headings, bullet lists and paragraphs. */
+/** The small Markdown explanations use: ## headings, bullet lists, pipe tables and paragraphs. */
 export function Markdown({ text }: { text: string }) {
   const blocks: ReactNode[] = []
   let list: string[] = []
-  const flush = () => {
+  let table: string[][] = []
+  const flushTable = () => {
+    const [head, ...rows] = table
+    if (head)
+      blocks.push(
+        <div key={blocks.length} className="mt-3 overflow-x-auto">
+          <table className="w-full text-start text-sm">
+            <thead>
+              <tr>
+                {head.map((c, i) => (
+                  <th
+                    key={i}
+                    className="border-line text-text border-b py-1.5 pe-4 text-start font-medium"
+                  >
+                    {inline(c)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i}>
+                  {r.map((c, j) => (
+                    <td key={j} className="border-line border-b py-1.5 pe-4" dir="auto">
+                      {inline(c)}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>,
+      )
+    table = []
+  }
+  const flushList = () => {
     if (list.length)
       blocks.push(
-        <ul key={blocks.length} className="mt-2 list-disc space-y-1 pl-5">
+        <ul key={blocks.length} className="mt-2 list-disc space-y-1 ps-5">
           {list.map((l, i) => (
             <li key={i}>{inline(l)}</li>
           ))}
@@ -28,8 +63,25 @@ export function Markdown({ text }: { text: string }) {
       )
     list = []
   }
+  const flush = () => {
+    flushTable()
+    flushList()
+  }
   for (const raw of text.split('\n')) {
     const line = raw.trim()
+    if (line.startsWith('|')) {
+      flushList()
+      // Skip the |---|---| separator row.
+      if (!/^\|[\s:|-]+\|$/.test(line))
+        table.push(
+          line
+            .slice(1, line.endsWith('|') ? -1 : undefined)
+            .split('|')
+            .map((c) => c.trim()),
+        )
+      continue
+    }
+    flushTable()
     const bullet = /^[-*•]\s+(.*)$/.exec(line)
     if (bullet?.[1] !== undefined) {
       list.push(bullet[1])
@@ -44,7 +96,7 @@ export function Markdown({ text }: { text: string }) {
           {h[1]}
         </h3>
       ) : (
-        <p key={blocks.length} className="mt-2">
+        <p key={blocks.length} className="mt-2" dir="auto">
           {inline(line)}
         </p>
       ),

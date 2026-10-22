@@ -1,4 +1,5 @@
 import { SiteLayout } from '@/components/SiteLayout'
+import { useHtmlLang } from '@/i18n'
 import { NotFound } from '@/pages/NotFound'
 import { useSettings, applyTheme } from '@/stores/settings'
 import {
@@ -13,6 +14,7 @@ import { Toaster } from 'sonner'
 
 function Root() {
   const theme = useSettings((s) => s.theme)
+  useHtmlLang()
   useEffect(() => {
     applyTheme(theme)
     if (theme !== 'system') return
@@ -72,17 +74,48 @@ const sitePages = [
   }),
 ]
 
+const page = <P extends string>(path: P, component: ReturnType<typeof lazyRouteComponent>) =>
+  createRoute({ getParentRoute: () => shell, path, component })
+
 const appPages = [
   createRoute({
     getParentRoute: () => shell,
     path: 'app',
-    component: lazyRouteComponent(() => import('@/pages/Landing'), 'Landing'),
+    // ?text= prefills the workspace (from History, the PWA share target, or a link).
+    validateSearch: (s: Record<string, unknown>): { text?: string; to?: string } => ({
+      ...(typeof s.text === 'string' && s.text && { text: s.text.slice(0, 5000) }),
+      ...(typeof s.to === 'string' && /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(s.to) && { to: s.to }),
+    }),
+    component: lazyRouteComponent(() => import('@/pages/Workspace'), 'Workspace'),
   }),
-  createRoute({
-    getParentRoute: () => shell,
-    path: 'settings',
-    component: lazyRouteComponent(() => import('@/pages/SettingsPage'), 'SettingsPage'),
-  }),
+  page(
+    'app/conversation',
+    lazyRouteComponent(() => import('@/pages/Conversation'), 'Conversation'),
+  ),
+  page(
+    'app/camera',
+    lazyRouteComponent(() => import('@/pages/CameraPage'), 'CameraPage'),
+  ),
+  page(
+    'app/documents',
+    lazyRouteComponent(() => import('@/pages/Documents'), 'Documents'),
+  ),
+  page(
+    'app/phrasebook',
+    lazyRouteComponent(() => import('@/pages/Phrasebook'), 'Phrasebook'),
+  ),
+  page(
+    'app/glossary',
+    lazyRouteComponent(() => import('@/pages/Glossary'), 'Glossary'),
+  ),
+  page(
+    'app/history',
+    lazyRouteComponent(() => import('@/pages/HistoryPage'), 'HistoryPage'),
+  ),
+  page(
+    'settings',
+    lazyRouteComponent(() => import('@/pages/SettingsPage'), 'SettingsPage'),
+  ),
 ]
 
 const routeTree = root.addChildren([site.addChildren(sitePages), shell.addChildren(appPages)])
