@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Translate+: the translator that gets your tone</title>
+    <meta
+      name="description"
+      content="Translate into 125 languages, then choose the tone: formal, casual, friendly, WhatsApp or business email. Conversation, camera and document translation, Hinglish, flashcards. On your device where it can be."
+    />
+    <meta name="theme-color" content="#0D0E13" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:title" content="Translate+: the translator that gets your tone" />
+    <meta
+      property="og:description"
+      content="125 languages, six tones, Hinglish both ways. On your device where it can be."
+    />
+    <meta property="og:image" content="/media/og.jpg" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Set the theme before first paint so there is no flash.
+      try {
+        const s = JSON.parse(localStorage.getItem('translateplus-settings') || '{}').state || {}
+        const t = s.theme || 'system'
+        const dark =
+          t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

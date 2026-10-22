@@ -1,0 +1,213 @@
+@import 'tailwindcss';
+
+/* Latin UI fonts are always on the page. Devanagari comes with the app shell, and on public pages once the
+   browser is idle (src/components/SiteLayout.tsx), so its 120 kB never delays the first paint; other scripts load on demand (src/lib/scriptFonts.ts).
+   @fontsource splits each font by unicode-range, so the browser only downloads the subsets a page uses. */
+@import '@fontsource-variable/fraunces';
+@import '@fontsource-variable/instrument-sans';
+
+/* Mono is only for small language-code labels: one weight, latin only. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin-400.woff2') format('woff2');
+}
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Palette from docs/design-brief.md: night ink and paper, one marigold accent. */
+:root,
+[data-theme='dark'] {
+  --bg: #0d0e13;
+  --surface: #16171f;
+  --surface-2: #1f2029;
+  --line: #2b2d3a;
+  --text: #eeebe3;
+  --muted: #a3a1ae;
+  /* Marigold: the shirorekha line, fills with ink on top, focus rings. */
+  --accent: #ffb43a;
+  --accent-ink: #0d0e13;
+  /* Accent as text on the background. */
+  --accent-text: #ffb43a;
+  /* Indigo: the source side. */
+  --source: #7c8cff;
+  --danger: #ff6b4a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #f6f2e9;
+  --surface: #ffffff;
+  --surface-2: #ece6da;
+  --line: #ddd5c6;
+  --text: #15161c;
+  --muted: #5b5966;
+  --accent: #ffb43a;
+  --accent-ink: #15161c;
+  --accent-text: #9a5a00;
+  --source: #3b4bd8;
+  --danger: #c23a1c;
+  --shadow: 0 1px 2px rgb(30 25 15 / 0.1), 0 16px 40px -14px rgb(30 25 15 / 0.25);
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-source: var(--source);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-text: var(--accent-text);
+  --color-danger: var(--danger);
+  --shadow-card: var(--shadow);
+  --font-display: 'Fraunces Variable', 'Noto Serif Devanagari Variable', ui-serif, Georgia, serif;
+  /* Script fonts after the UI font: each glyph falls through to the first font that has it. */
+  --font-sans:
+    'Instrument Sans Variable', 'Noto Sans Devanagari Variable', 'Noto Naskh Arabic Variable',
+    'Noto Sans Hebrew Variable', 'Noto Sans Bengali Variable', 'Noto Sans Tamil Variable',
+    'Noto Sans Thai Variable', 'Noto Sans JP Variable', 'Noto Sans SC Variable',
+    'Noto Sans KR Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    @apply font-sans;
+    min-height: 100dvh;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent-text);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 45%, transparent);
+    color: var(--text);
+  }
+}
+
+/* Mono label: "EN → HI · FORMAL · AAP". */
+@utility spec {
+  @apply font-mono text-[11px] tracking-[0.14em] uppercase;
+}
+
+/* The shirorekha: text, cards and panels hang from a hairline rule on their top edge. */
+@utility hang {
+  border-block-start: 1px solid var(--line);
+  padding-block-start: 1rem;
+}
+@utility hang-accent {
+  border-block-start: 2px solid var(--accent);
+  padding-block-start: 1rem;
+}
+@utility hang-source {
+  border-block-start: 2px solid var(--source);
+  padding-block-start: 1rem;
+}
+
+/* Ruled paper behind long text, like an interlinear gloss. */
+@utility ruled {
+  background-image: linear-gradient(to bottom, transparent calc(2rem - 1px), var(--line) 0);
+  background-size: 100% 2rem;
+  line-height: 2rem;
+}
+
+/* Grain over big hero surfaces. The element must be positioned (relative, sticky…). */
+@utility grain {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Words drop from the line as a translation streams in. inline-block keeps the transform; spaces stay. */
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.45em);
+  }
+}
+.drop-in {
+  display: inline-block;
+  white-space: pre;
+  animation: drop-in 180ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+/* The same drop for a whole block of text, which still wraps. */
+.drop-block {
+  animation: drop-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* The marigold line draws across before the translation drops from it. */
+@keyframes draw-line {
+  from {
+    transform: scaleX(0);
+  }
+}
+.draw-line {
+  transform-origin: left;
+  animation: draw-line 420ms cubic-bezier(0.6, 0, 0.2, 1) both;
+}
+[dir='rtl'] .draw-line,
+.draw-line:dir(rtl) {
+  transform-origin: right;
+}
+
+/* The language wall drifts sideways. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* A card that flips in 3D (flashcards). */
+.flip {
+  perspective: 1200px;
+}
+.flip > .flip-inner {
+  transform-style: preserve-3d;
+  transition: transform 500ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.flip[data-flipped='true'] > .flip-inner {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}

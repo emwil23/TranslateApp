@@ -1,0 +1,97 @@
+{
+  "wa": {
+    "action": "translate",
+    "input": {
+      "text": "Can we move the meeting to tomorrow? I'm stuck at the station.",
+      "from": "en",
+      "to": "hi",
+      "tone": "whatsapp",
+      "terms": []
+    },
+    "output": "मीटिंग कल कर लें क्या? स्टेशन पे फँस गया हूँ 🚂"
+  },
+  "formal": {
+    "action": "translate",
+    "input": {
+      "text": "Can we move the meeting to tomorrow? I'm stuck at the station.",
+      "from": "en",
+      "to": "hi",
+      "tone": "formal",
+      "respect": "aap",
+      "terms": []
+    },
+    "output": "क्या हम मीटिंग कल कर सकते हैं? मैं स्टेशन पर फँस गया हूँ।"
+  },
+  "ja": {
+    "action": "translate",
+    "input": {
+      "text": "Can we move the meeting to tomorrow? I'm stuck at the station.",
+      "from": "en",
+      "to": "ja",
+      "tone": "email",
+      "respect": "keigo",
+      "terms": []
+    },
+    "output": "関係者各位\n\nお世話になっております。\n駅にて足止めを受けており身動きが取れない状況でございます。\n誠に恐縮ですが、本日の会議を明日へ変更していただくことは可能でしょうか。\n\nご迷惑をおかけし申し訳ございませんが、何卒ご検討のほどよろしくお願い申し上げます。"
+  },
+  "conv1": {
+    "action": "conversation",
+    "input": {
+      "text": "excuse me where is the train to Agra",
+      "from": "en",
+      "to": "hi"
+    },
+    "output": "सुनिए, आगरा जाने वाली ट्रेन कहाँ मिलेगी?"
+  },
+  "conv2": {
+    "action": "conversation",
+    "input": {
+      "text": "प्लेटफॉर्म नंबर तीन पर, दस मिनट में निकलेगी",
+      "from": "hi",
+      "to": "en"
+    },
+    "output": "It'll leave from platform number three in ten minutes."
+  },
+  "conv3": {
+    "action": "conversation",
+    "input": {
+      "text": "thank you so much do I need a ticket first",
+      "from": "en",
+      "to": "hi"
+    },
+    "output": "बहुत-बहुत शुक्रिया, क्या मुझे पहले टिकट लेनी होगी?"
+  },
+  "doc": {
+    "action": "document",
+    "input": {
+      "text": "Hi everyone, welcome to the course.\nToday we learn how to order food in Hindi.\nLet us start with a few simple words.",
+      "from": "en",
+      "to": "hi",
+      "tone": "plain",
+      "terms": []
+    },
+    "output": "\"नमस्ते सभी को, कोर्स में आपका स्वागत है।\nआज हम हिंदी में खाना ऑर्डर करना सीखते हैं।\nआइए कुछ सरल शब्दों से शुरुआत करें।\""
+  },
+  "menu": {
+    "action": "translate",
+    "input": {
+      "text": "Tortilla española\nPimientos de Padrón\nCroquetas de jamón\nAgua con gas",
+      "from": "es",
+      "to": "en",
+      "tone": "plain",
+      "terms": []
+    },
+    "output": "Spanish omelette\nPadrón peppers\nHam croquettes\nSparkling water"
+  },
+  "explain": {
+    "action": "explain",
+    "input": {
+      "source": "Can we move the meeting to tomorrow? I'm stuck at the station.",
+      "translation": "मीटिंग कल कर लें क्या? स्टेशन पे फँस गया हूँ 🚂",
+      "from": "en",
+      "to": "hi",
+      "tone": "whatsapp"
+    },
+    "output": "## Meaning and nuance\nThis sentence informally asks if a meeting can be rescheduled to the next day because the speaker is stranded at the station. Written in a casual WhatsApp style, it uses everyday slang like *phãs gayā hū̃* and drops formal pronouns to sound like a quick text to a friend or colleague.\n\n## Grammar\n* Using the plural *kar lẽ* (कर लें - let's do) with *kyā* (क्या - question particle) softens a direct request into a casual suggestion.\n* The locative suffix *pe* (पे - at/on) replaces the more formal *par* for a conversational, spoken feel.\n* The state of being stuck is expressed with the participle *phãs gayā* (फँस गया) plus the auxiliary *hū̃* ( हूँ - am).\n\n## Examples\n* कल मिल लें क्या? (*Kal mil lẽ kyā?* - Shall we meet tomorrow?)\n* मैं ट्रैफिक में फँस गया हूँ। (*Maĩ trafikal mẽ phãs gayā hū̃.* - I am stuck in traffic.)\n* हम मीटिंग आगे बढ़ा दें क्या? (*Ham mītiṅg āge baṛhā dẽ kyā?* - Shall we postpone the meeting?)\n\n## Verb forms\n| Tense | Form (Masculine Singular) | Transliteration |\n| :--- | :--- | :--- |\n| Present | फँस गया हूँ | phãs gayā hū̃ |\n| Past | फँस गया था | phãs gayā thā |\n| Future | फँस जाऊँगा | phãs jāūṅgā |"
+  }
+}
