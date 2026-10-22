@@ -4,7 +4,7 @@ import { Markdown } from '@/components/Markdown'
 import { RespectPicker, ToneChips } from '@/components/ToneChips'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { useT } from '@/i18n'
+import { useErrorText, useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { addHistory, db, uid } from '@/lib/db'
 import { fromHinglish, toHinglish } from '@/lib/hinglish'
@@ -49,7 +49,9 @@ export function Workspace() {
   const [typeHinglish, setTypeHinglish] = useState(false)
   const [output, setOutput] = useState('')
   const [status, setStatus] = useState<Status>('idle')
-  const [error, setError] = useState<string | null>(null)
+  // The error itself, shown in the interface language when it renders.
+  const [error, setError] = useState<unknown>(null)
+  const errorText = useErrorText()
   const [engine, setEngine] = useState<'device' | 'ai' | null>(null)
   const [detected, setDetected] = useState<string | null>(null)
   const [download, setDownload] = useState<number | null>(null)
@@ -131,9 +133,8 @@ export function Workspace() {
           setStatus('idle')
           return
         }
-        setError(err instanceof Error ? err.message : 'Something went wrong.')
+        setError(err)
         setStatus(err instanceof NoProviderError ? 'idle' : 'error')
-        if (err instanceof NoProviderError) setError('no-provider')
       }
     },
     [sourceText, s.from, s.tone, to, respect, terms],
@@ -372,7 +373,7 @@ export function Workspace() {
                 {t('ws.download', { pct: Math.round(download * 100) })}
               </p>
             )}
-            {error === 'no-provider' ? (
+            {error instanceof NoProviderError ? (
               <p
                 role="status"
                 className="border-accent-text/30 bg-accent/5 mt-4 rounded-xl border p-3 text-sm"
@@ -387,12 +388,12 @@ export function Workspace() {
                 </Link>
               </p>
             ) : (
-              error && (
+              error != null && (
                 <p
                   role="alert"
                   className="border-danger/30 bg-danger/10 text-danger mt-4 rounded-xl border p-3 text-sm"
                 >
-                  {error}
+                  {errorText(error)}
                 </p>
               )
             )}
@@ -562,7 +563,8 @@ function Explanation(input: {
 }) {
   const t = useT()
   const [text, setText] = useState('')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
+  const errorText = useErrorText()
   const { source, translation, from, to, tone } = input
 
   useEffect(() => {
@@ -579,20 +581,17 @@ function Explanation(input: {
         for await (const all of aiText('explain', request, controller.signal)) setText(all)
       } catch (e) {
         if (controller.signal.aborted) return
-        setError(
-          e instanceof NoProviderError ? t('ai.pick') : e instanceof Error ? e.message : 'Error',
-        )
+        setError(e)
       }
     })()
     return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` changes identity with the language only
   }, [source, translation, from, to, tone])
 
   return (
     <div className="mt-5" aria-live="polite">
-      {error ? (
+      {error != null ? (
         <p role="alert" className="text-danger text-sm">
-          {error}
+          {errorText(error)}
         </p>
       ) : text ? (
         <Markdown text={text} />
@@ -658,7 +657,8 @@ function Alternatives({
 }) {
   const t = useT()
   const [items, setItems] = useState<{ text: string; note: string }[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
+  const errorText = useErrorText()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -671,15 +671,15 @@ function Alternatives({
     aiLines('alternatives', request, controller.signal)
       .then((r) => setItems(r.filter((i) => typeof i.text === 'string' && i.text.trim())))
       .catch((e: unknown) => {
-        if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Error')
+        if (!controller.signal.aborted) setError(e)
       })
     return () => controller.abort()
   }, [word, source, translation, to])
 
-  if (error)
+  if (error != null)
     return (
       <p role="alert" className="text-danger mt-4 text-sm">
-        {error}
+        {errorText(error)}
       </p>
     )
   if (!items) return <p className="text-muted mt-4 animate-pulse text-sm">{t('ws.translating')}</p>

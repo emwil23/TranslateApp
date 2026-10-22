@@ -192,6 +192,10 @@ test('the interface switches to Hindi @mobile', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('lang', 'hi')
   await expect(page.getByRole('link', { name: 'वाक्यकोश' }).first()).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'अनुवाद के लिए पाठ' })).toBeVisible()
+  // Settings follows the switch too, down to the AI providers.
+  await page.getByRole('link', { name: 'सेटिंग्स' }).first().click()
+  await expect(page.getByRole('heading', { name: 'सेटिंग्स', level: 1 })).toBeVisible()
+  await expect(page.getByText('आपकी अपनी कुंजी')).toBeVisible()
 })
 
 test('unknown pages get the designed 404', async ({ page }) => {

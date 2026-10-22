@@ -1,3 +1,4 @@
+import { useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { X } from 'lucide-react'
 import { Dialog as D } from 'radix-ui'
@@ -23,6 +24,7 @@ export function DialogContent({
   hideTitle?: boolean
   children: ReactNode
 }) {
+  const t = useT()
   return (
     <D.Portal>
       <D.Overlay className="data-[state=open]:animate-in fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
@@ -44,7 +46,7 @@ export function DialogContent({
         {children}
         <D.Close
           className="text-muted hover:bg-surface-2 hover:text-text absolute top-4 right-4 rounded-lg p-1.5"
-          aria-label="Close"
+          aria-label={t('ws.close')}
         >
           <X className="size-4" />
         </D.Close>

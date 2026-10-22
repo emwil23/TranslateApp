@@ -1,5 +1,6 @@
 import type { ActionInputs, ActionName, ActionOutputs } from '@/ai/actions'
 import { jsonLines } from '@/ai/lines'
+import { AppError } from '@/i18n/errors'
 import { providerById } from '@/ai/providers'
 import { protectTerms, termsFor, termsIn, type Term } from '@/lib/glossary'
 import { guessFromScript } from '@/lib/scripts'
@@ -8,9 +9,9 @@ import { useSettings } from '@/stores/settings'
 import { cleanReply } from './clean'
 import { detectOnDevice, deviceAvailability, translateOnDevice } from './device'
 
-export class NoProviderError extends Error {
+export class NoProviderError extends AppError {
   constructor() {
-    super('Pick an AI provider in Settings to use tones, explanations and alternatives.')
+    super('ai.pick')
   }
 }
 
@@ -25,7 +26,7 @@ export async function* aiText<A extends ActionName>(
   let all = ''
   for await (const chunk of provider.run(action, input, signal)) {
     all += chunk
-    if (all.includes('[[error]]')) throw new Error('The AI stopped partway. Please try again.')
+    if (all.includes('[[error]]')) throw new AppError('err.stopped')
     // The server's keep-alive blank lines come before the first word.
     yield all.trimStart()
   }
@@ -66,11 +67,9 @@ export type TranslateEvent =
   | { type: 'download'; fraction: number }
   | { type: 'text'; text: string }
 
-export class DeviceOnlyError extends Error {
+export class DeviceOnlyError extends AppError {
   constructor() {
-    super(
-      "This browser can't translate this pair on your device. Allow the AI server or your own provider to continue.",
-    )
+    super('err.deviceOnly')
   }
 }
 

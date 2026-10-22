@@ -17,6 +17,7 @@ import {
 } from '@/ai/supabase'
 import { PageHeader } from '@/components/PageHeader'
 import { UiLangToggle } from '@/components/UiLangToggle'
+import { useT, type Key } from '@/i18n'
 import { hasDeviceTranslator } from '@/translate/device'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/cn'
@@ -41,11 +42,19 @@ function Section({ id, title, children }: { id: string; title: string; children:
   )
 }
 
+// Provider names that change with the interface language; Puter and OpenRouter are names.
+const PROVIDER_LABEL: Partial<Record<ProviderId, Key>> = { ew: 'prov.ew', own: 'prov.own' }
+
 const input =
   'h-10 w-full rounded-xl border border-line bg-bg px-3 text-sm outline-none focus:border-accent'
 
 export function SettingsPage() {
   const s = useSettings()
+  const t = useT()
+  const label = (id: ProviderId, fallback: string) => {
+    const key = PROVIDER_LABEL[id]
+    return key ? t(key) : fallback
+  }
 
   // Back from OpenRouter's consent screen with ?code=...
   useEffect(() => {
@@ -54,24 +63,23 @@ export function SettingsPage() {
     if (!code || !openRouterPending()) return
     history.replaceState(null, '', location.pathname + location.hash)
     finishOpenRouterAuth(code)
-      .then((ok) => ok && toast.success('OpenRouter connected'))
-      .catch((e: unknown) =>
-        toast.error(e instanceof Error ? e.message : 'OpenRouter sign-in failed'),
-      )
+      .then((ok) => ok && toast.success(t('set.orConnected')))
+      .catch(() => toast.error(t('set.orFailed')))
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once, on the way back from OpenRouter
   }, [])
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6">
-      <PageHeader eyebrow="Preferences" title="Settings" />
+      <PageHeader eyebrow={t('set.eyebrow')} title={t('set.title')} />
 
-      <Section id="theme" title="Theme">
-        <div role="radiogroup" aria-label="Theme" className="flex gap-2">
+      <Section id="theme" title={t('set.theme')}>
+        <div role="radiogroup" aria-label={t('set.theme')} className="flex gap-2">
           {(
             [
-              ['system', 'System', Monitor],
-              ['dark', 'Dark', Moon],
-              ['light', 'Light', Sun],
-            ] as [Theme, string, typeof Sun][]
+              ['system', 'set.system', Monitor],
+              ['dark', 'set.dark', Moon],
+              ['light', 'set.light', Sun],
+            ] as [Theme, Key, typeof Sun][]
           ).map(([value, label, Icon]) => (
             <button
               key={value}
@@ -84,16 +92,16 @@ export function SettingsPage() {
                 s.theme === value ? 'border-accent bg-accent/10' : 'border-line hover:bg-surface-2',
               )}
             >
-              <Icon className="size-4" aria-hidden /> {label}
+              <Icon className="size-4" aria-hidden /> {t(label)}
             </button>
           ))}
         </div>
       </Section>
 
-      <Section id="translation" title="Translation">
+      <Section id="translation" title={t('set.translation')}>
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <span className="text-sm">Interface language</span>
+            <span className="text-sm">{t('uiLang')}</span>
             <UiLangToggle />
           </div>
           <label className="flex items-start gap-3 text-sm">
@@ -104,11 +112,9 @@ export function SettingsPage() {
               className="mt-1 accent-[var(--accent)]"
             />
             <span>
-              Translate on this device when the browser can
+              {t('set.preferDevice')}
               <span className="text-muted block">
-                {hasDeviceTranslator()
-                  ? 'Your browser has an on-device translator: plain translations are free, private and work offline.'
-                  : 'This browser has no on-device translator (Chrome 138+ on desktop does), so translations use your AI provider.'}
+                {hasDeviceTranslator() ? t('set.deviceYes') : t('set.deviceNo')}
               </span>
             </span>
           </label>
@@ -120,26 +126,23 @@ export function SettingsPage() {
               className="mt-1 accent-[var(--accent)]"
             />
             <span>
-              Show Hindi in Latin letters (Hinglish) under Hindi translations
+              {t('set.hinglish')}
               <span className="text-muted block">आप कैसे हैं → aap kaise hain</span>
             </span>
           </label>
         </div>
       </Section>
 
-      <Section id="ai" title="AI">
+      <Section id="ai" title={t('set.ai')}>
         <p className="text-muted mb-4 max-w-prose text-sm">
-          AI is free in Translate+, never behind Pro. It handles tones, explanations, alternatives
-          and any translation your browser can't do on its own. It sees only the text you ask it to
-          work on. See the{' '}
+          {t('set.aiLead')}{' '}
           <Link to="/privacy" className="text-accent-text underline underline-offset-4">
-            privacy page
+            {t('set.privacyLink')}
           </Link>
-          .
         </p>
         <div
           role="radiogroup"
-          aria-label="AI provider"
+          aria-label={t('set.provider')}
           className="grid grid-cols-1 gap-3 md:grid-cols-2"
         >
           {providers.map((p) => {
@@ -159,13 +162,13 @@ export function SettingsPage() {
                     : 'border-line hover:bg-surface-2',
                 )}
               >
-                <span className="font-medium">{p.label}</span>
+                <span className="font-medium">{label(p.id, p.label)}</span>
                 <span className="text-muted mt-1 block text-sm">
                   {offered
-                    ? p.blurb
+                    ? t(`prov.${p.id}.blurb`)
                     : p.id === 'ew' && inBlockedRegion()
-                      ? 'Not available in your region.'
-                      : 'Not set up on this deployment.'}
+                      ? t('set.notRegion')
+                      : t('set.notSetUp')}
                 </span>
               </button>
             )
@@ -174,7 +177,7 @@ export function SettingsPage() {
         <ProviderSetup provider={s.provider} />
       </Section>
 
-      <p className="spec text-muted pt-8">Translate+ build {__BUILD__}</p>
+      <p className="spec text-muted pt-8">{t('set.build', { build: __BUILD__ })}</p>
     </div>
   )
 }
@@ -209,6 +212,7 @@ function NumberField({
 
 function ProviderSetup({ provider }: { provider: ProviderId | null }) {
   const s = useSettings()
+  const t = useT()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [passkeys, setPasskeys] = useState<number | null>(null)
@@ -248,30 +252,21 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
               className="self-start"
               onClick={() =>
                 void signInWithPasskey()
-                  .then(() => toast.success('Signed in'))
-                  .catch(() =>
-                    toast.error(
-                      "No EWSTUDIOS passkey was found. Sign in by email once, then choose 'Add a passkey'.",
-                    ),
-                  )
+                  .then(() => toast.success(t('set.signedInToast')))
+                  .catch(() => toast.error(t('set.passkeyNone')))
               }
             >
-              <KeyRound /> I have a passkey
+              <KeyRound /> {t('set.passkeyBtn')}
             </Button>
-            <p className="text-muted text-xs">
-              Works with a passkey from any EWSTUDIOS app. New here? Sign in below first, then add a
-              passkey (Face ID, fingerprint, Windows Hello or a password manager).
-            </p>
+            <p className="text-muted text-xs">{t('set.passkeyHint')}</p>
           </div>
         )}
         {!signedIn && googleEnabled && (
           <Button
             className="mb-4"
-            onClick={() =>
-              void signInWithGoogle().catch(() => toast.error('Google sign-in did not start.'))
-            }
+            onClick={() => void signInWithGoogle().catch(() => toast.error(t('set.googleFail')))}
           >
-            Continue with Google
+            {t('set.google')}
           </Button>
         )}
         {!signedIn && !sent ? (
@@ -282,12 +277,12 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
               sendMagicLink(email)
                 .then(() => setSent(true))
                 .catch((err: unknown) =>
-                  toast.error(err instanceof Error ? err.message : 'Could not send the email'),
+                  toast.error(err instanceof Error ? err.message : t('set.emailFail')),
                 )
             }}
           >
             <label htmlFor="ew-email" className="text-sm">
-              Sign in by email (used only to count your daily AI calls):
+              {t('set.emailLabel')}
             </label>
             <div className="flex gap-2">
               <input
@@ -300,7 +295,7 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
                 autoComplete="email"
               />
               <Button type="submit" variant="primary">
-                Email me
+                {t('set.emailMe')}
               </Button>
             </div>
           </form>
@@ -310,13 +305,12 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
             onSubmit={(e) => {
               e.preventDefault()
               verifyEmailCode(email, code.trim())
-                .then(() => toast.success('Signed in'))
-                .catch(() => toast.error('That code is wrong or has expired. Request a new one.'))
+                .then(() => toast.success(t('set.signedInToast')))
+                .catch(() => toast.error(t('set.codeWrong')))
             }}
           >
             <label htmlFor="ew-code" className="text-sm">
-              We emailed {email}. Open the link on this device, or type the code from the email
-              here:
+              {t('set.codeLabel', { email })}
             </label>
             <div className="flex gap-2">
               <input
@@ -330,7 +324,7 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
                 className={`${input} font-mono tracking-[0.3em]`}
               />
               <Button type="submit" variant="primary">
-                Verify
+                {t('set.verify')}
               </Button>
             </div>
             <Button
@@ -343,20 +337,20 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
                 setCode('')
               }}
             >
-              Use a different email
+              {t('set.otherEmail')}
             </Button>
           </form>
         ) : adult ? (
           <div className="flex flex-col gap-3 text-sm">
             <div className="flex items-center justify-between gap-3">
-              <span className="text-accent-text">Signed in. 30 free AI calls a day.</span>
+              <span className="text-accent-text">{t('set.signedIn')}</span>
               <Button variant="ghost" size="sm" onClick={() => void signOut()}>
-                Sign out
+                {t('set.signOut')}
               </Button>
             </div>
             {passkeysSupported() && !passkeys && (
               <div className="border-accent/30 bg-accent/10 flex flex-wrap items-center gap-3 rounded-xl border p-3">
-                <p className="flex-1">Skip the email next time: add a passkey.</p>
+                <p className="flex-1">{t('set.addPasskeyHint')}</p>
                 <Button
                   variant="ai"
                   size="sm"
@@ -364,35 +358,36 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
                     void addPasskey()
                       .then(() => {
                         setPasskeys(1)
-                        toast.success('Passkey added')
+                        toast.success(t('set.passkeyAdded'))
                       })
-                      .catch(() => toast.error('The passkey was not saved.'))
+                      .catch(() => toast.error(t('set.passkeyFail')))
                   }
                 >
-                  <KeyRound /> Add a passkey
+                  <KeyRound /> {t('set.addPasskey')}
                 </Button>
               </div>
             )}
             {Boolean(passkeys) && (
               <p className="text-muted">
-                {passkeys} passkey{passkeys === 1 ? '' : 's'} saved. It works in every EWSTUDIOS
-                app.
+                {passkeys === 1
+                  ? t('set.passkeysOne')
+                  : t('set.passkeysMany', { n: passkeys ?? 0 })}
               </p>
             )}
           </div>
         ) : (
           <div className="flex flex-col gap-3 text-sm">
-            <p>The free AI server is for people aged 18 or over.</p>
+            <p>{t('set.adultOnly')}</p>
             <Button
               variant="primary"
               className="self-start"
               onClick={() =>
                 void confirmAdult()
                   .then(() => setAdult(true))
-                  .catch(() => toast.error('Could not save that. Please try again.'))
+                  .catch(() => toast.error(t('set.saveFail')))
               }
             >
-              I am 18 or older
+              {t('set.adultBtn')}
             </Button>
           </div>
         )}
@@ -402,18 +397,13 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
             size="sm"
             className="mt-4"
             onClick={() => {
-              if (
-                !confirm(
-                  'Delete your EW account? Your sign-in, passkeys and AI usage are removed from our server for every EW app. Boards stay in this browser.',
-                )
-              )
-                return
+              if (!confirm(t('set.deleteConfirm'))) return
               deleteAccount()
-                .then(() => toast.success('Account deleted'))
-                .catch(() => toast.error('Could not delete the account. Please try again.'))
+                .then(() => toast.success(t('set.deleted')))
+                .catch(() => toast.error(t('set.deleteFail')))
             }}
           >
-            <Trash2 /> Delete my account
+            <Trash2 /> {t('set.delete')}
           </Button>
         )}
       </div>
@@ -426,9 +416,9 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
       <div className="border-line mt-6 flex max-w-lg flex-col gap-3 rounded-2xl border p-4">
         {s.openrouterKey ? (
           <div className="flex items-center justify-between text-sm">
-            <span className="text-accent-text">OpenRouter connected.</span>
+            <span className="text-accent-text">{t('set.orConnected')}</span>
             <Button variant="ghost" size="sm" onClick={() => s.set({ openrouterKey: null })}>
-              Disconnect
+              {t('set.disconnect')}
             </Button>
           </div>
         ) : (
@@ -437,11 +427,11 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
             className="self-start"
             onClick={() => void startOpenRouterAuth()}
           >
-            Connect OpenRouter
+            {t('set.orConnect')}
           </Button>
         )}
         <NumberField
-          label="Model"
+          label={t('set.model')}
           type="text"
           value={s.openrouterModel}
           onChange={(v) => s.set({ openrouterModel: v })}
@@ -453,19 +443,19 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
     return (
       <div className="border-line mt-6 grid max-w-lg gap-3 rounded-2xl border p-4">
         <NumberField
-          label="API base URL"
+          label={t('set.baseUrl')}
           type="url"
           value={s.ownBaseUrl}
           onChange={(v) => s.set({ ownBaseUrl: v })}
         />
         <NumberField
-          label="Model"
+          label={t('set.model')}
           type="text"
           value={s.ownModel}
           onChange={(v) => s.set({ ownModel: v })}
         />
         <NumberField
-          label="API key (stored only in this browser)"
+          label={t('set.apiKey')}
           type="password"
           value={s.ownKey ?? ''}
           onChange={(v) => s.set({ ownKey: v || null })}
@@ -478,6 +468,7 @@ function ProviderSetup({ provider }: { provider: ProviderId | null }) {
 
 /** Puter runs the model on the user's own free Puter account; sign-in must start from a click (it's a popup). */
 function PuterSetup() {
+  const t = useT()
   const [state, setState] = useState<'loading' | 'out' | 'in' | 'error'>('loading')
   const [user, setUser] = useState('')
 
@@ -502,29 +493,29 @@ function PuterSetup() {
       await window.puter?.auth.signIn()
       setUser((await window.puter?.auth.getUser())?.username ?? '')
       setState('in')
-      toast.success('Puter connected')
+      toast.success(t('set.puterDone'))
     } catch {
-      toast.error('Puter sign-in was closed or blocked. Allow pop-ups for this site and try again.')
+      toast.error(t('set.puterFail'))
     }
   }
 
   return (
     <div className="border-line mt-6 flex max-w-lg flex-col gap-3 rounded-2xl border p-4 text-sm">
-      {state === 'loading' && <p className="text-muted">Loading Puter…</p>}
-      {state === 'error' && (
-        <p className="text-danger">Puter couldn't load. Check your connection or ad blocker.</p>
-      )}
+      {state === 'loading' && <p className="text-muted">{t('set.puterLoading')}</p>}
+      {state === 'error' && <p className="text-danger">{t('set.puterError')}</p>}
       {state === 'out' && (
         <>
-          <p>Connect a free Puter account. It opens Puter's sign-in in a small window.</p>
+          <p>{t('set.puterLead')}</p>
           <Button variant="primary" className="self-start" onClick={() => void connect()}>
-            Connect Puter
+            {t('set.puterConnect')}
           </Button>
         </>
       )}
       {state === 'in' && (
         <div className="flex items-center justify-between gap-3">
-          <span className="text-accent-text">Connected to Puter{user && ` as ${user}`}.</span>
+          <span className="text-accent-text">
+            {user ? t('set.puterConnectedAs', { user }) : t('set.puterConnected')}
+          </span>
           <Button
             variant="ghost"
             size="sm"
@@ -533,7 +524,7 @@ function PuterSetup() {
               setState('out')
             }}
           >
-            Disconnect
+            {t('set.disconnect')}
           </Button>
         </div>
       )}

@@ -1,12 +1,12 @@
 import { AppPage } from '@/components/AppPage'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n'
+import { useErrorText, useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { db } from '@/lib/db'
 import { loadFontForLang } from '@/lib/scripts'
 import { useSettings } from '@/stores/settings'
-import { DeviceOnlyError, translateAll } from '@/translate/engine'
+import { translateAll } from '@/translate/engine'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Camera, ImageUp, Languages, RotateCcw, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -54,6 +54,7 @@ export function CameraPage() {
   const [allowAi, setAllowAi] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [live, setLive] = useState(false)
+  const errorText = useErrorText()
   const fileRef = useRef<HTMLInputElement>(null)
   const terms = useLiveQuery(() => db.terms.toArray(), []) ?? []
 
@@ -123,7 +124,7 @@ export function CameraPage() {
           }) ?? null,
       )
     } catch (e) {
-      setError(e instanceof DeviceOnlyError ? e.message : e instanceof Error ? e.message : 'Error')
+      setError(errorText(e))
     }
   }
 
@@ -366,7 +367,7 @@ function Viewfinder({ onShot, onCancel }: { onShot: (b: Blob) => void; onCancel:
     return (
       <div className="hang-accent">
         <p className="text-danger" role="alert">
-          Camera unavailable.
+          {t('cam.unavailable')}
         </p>
         <Button variant="secondary" className="mt-3" onClick={onCancel}>
           {t('common.cancel')}

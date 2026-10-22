@@ -2,7 +2,7 @@ import { AppPage } from '@/components/AppPage'
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { ToneChips } from '@/components/ToneChips'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n'
+import { useErrorText, useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { db } from '@/lib/db'
 import {
@@ -29,6 +29,7 @@ export function Documents() {
   const [allowAi, setAllowAi] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [drag, setDrag] = useState(false)
+  const errorText = useErrorText()
   const input = useRef<HTMLInputElement>(null)
   const abort = useRef<AbortController | null>(null)
   const terms = useLiveQuery(() => db.terms.toArray(), []) ?? []
@@ -78,7 +79,7 @@ export function Documents() {
       )
       setResult(out)
     } catch (e) {
-      if (!controller.signal.aborted) setError(e instanceof Error ? e.message : 'Error')
+      if (!controller.signal.aborted) setError(errorText(e))
     } finally {
       setProgress(null)
     }
@@ -153,7 +154,7 @@ export function Documents() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium">{doc.name}</p>
               <p className="spec text-muted">
-                {doc.kind} · ~{doc.pages} {doc.pages === 1 ? 'page' : 'pages'}
+                {doc.kind} · {doc.pages === 1 ? t('doc.page') : t('doc.pages', { n: doc.pages })}
               </p>
             </div>
             <LanguagePicker

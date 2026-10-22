@@ -1,6 +1,6 @@
 import { LanguagePicker } from '@/components/LanguagePicker'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n'
+import { useErrorText, useT } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { language } from '@/lib/languages'
 import { loadFontForLang } from '@/lib/scripts'
@@ -34,7 +34,8 @@ export function Conversation() {
   const [active, setActive] = useState<0 | 1 | null>(null)
   const [interim, setInterim] = useState('')
   const [face, setFace] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
+  const errorText = useErrorText()
   const recognition = useRef<Recognition | null>(null)
   const nextId = useRef(0)
 
@@ -63,9 +64,7 @@ export function Conversation() {
       if (final) speak(final, to)
     } catch (e) {
       setTurns((all) => all.filter((x) => x.id !== id))
-      setError(
-        e instanceof NoProviderError ? 'no-provider' : e instanceof Error ? e.message : 'Error',
-      )
+      setError(e)
     }
   }
 
@@ -125,12 +124,12 @@ export function Conversation() {
         onTalk={talk}
         onType={(text) => void handle(0, text)}
       />
-      {error && (
+      {error != null && (
         <p
           role="alert"
           className="border-danger/30 bg-danger/10 text-danger m-4 rounded-xl border p-3 text-sm"
         >
-          {error === 'no-provider' ? (
+          {error instanceof NoProviderError ? (
             <>
               {t('ai.pick')}{' '}
               <Link to="/settings" hash="ai" className="underline underline-offset-4">
@@ -138,7 +137,7 @@ export function Conversation() {
               </Link>
             </>
           ) : (
-            error
+            errorText(error)
           )}
         </p>
       )}

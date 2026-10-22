@@ -1,5 +1,6 @@
 import { useSettings } from '@/stores/settings'
 import { useEffect } from 'react'
+import { AppError } from './errors'
 import { en } from './en'
 import { hi } from './hi'
 
@@ -18,6 +19,13 @@ export function useT() {
     if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
     return s
   }
+}
+
+/** Shows any error in the interface language: AppErrors by their key, others by their own message. */
+export function useErrorText() {
+  const t = useT()
+  return (e: unknown) =>
+    e instanceof AppError ? t(e.key, e.vars) : e instanceof Error ? e.message : t('err.generic')
 }
 
 /** Keeps <html lang> in step with the interface language, for screen readers and fonts. */

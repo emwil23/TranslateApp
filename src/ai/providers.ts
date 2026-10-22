@@ -1,5 +1,6 @@
 import { useSettings, type ProviderId } from '@/stores/settings'
 import { buildPrompt, type ActionInputs, type ActionName } from './actions'
+import { AppError } from '@/i18n/errors'
 import { getAccessToken, isAdult, supabaseConfigured } from './supabase'
 
 export interface Provider {
@@ -30,7 +31,7 @@ export function inBlockedRegion(tz = Intl.DateTimeFormat().resolvedOptions().tim
 }
 
 async function* readText(res: Response): AsyncGenerator<string> {
-  if (!res.ok || !res.body) throw new Error(await errorMessage(res))
+  if (!res.ok || !res.body) throw await errorFrom(res)
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
   for (;;) {
     const { value, done } = await reader.read()
@@ -39,17 +40,17 @@ async function* readText(res: Response): AsyncGenerator<string> {
   }
 }
 
-async function errorMessage(res: Response): Promise<string> {
+async function errorFrom(res: Response): Promise<AppError> {
   const body = (await res.json().catch(() => ({}))) as { error?: string; message?: string }
-  const known: Record<string, string> = {
-    quota_exceeded: "You've used today's free AI calls. They reset at midnight.",
-    rate_limited: 'Too many requests. Wait a minute and try again.',
-    region_unavailable:
-      'The free AI server is not available in your region. Pick another provider in Settings.',
-    adults_only: 'The free AI server is for people 18 and over.',
-    unauthorized: 'Please sign in again in Settings.',
+  const known: Record<string, ConstructorParameters<typeof AppError>[0]> = {
+    quota_exceeded: 'err.quota',
+    rate_limited: 'err.rate',
+    region_unavailable: 'err.region',
+    adults_only: 'err.adults',
+    unauthorized: 'err.signIn',
   }
-  return (body.error && known[body.error]) ?? body.message ?? `AI request failed (${res.status}).`
+  const key = body.error ? known[body.error] : undefined
+  return key ? new AppError(key) : new AppError('err.failed', { status: res.status })
 }
 
 /** Server-Sent Events from an OpenAI-compatible chat endpoint, reduced to the text deltas. */
@@ -159,7 +160,7 @@ export const providers: Provider[] = [
     ready: async () => Boolean(await getAccessToken()) && (await isAdult()),
     async *run(action, input, signal) {
       const token = await getAccessToken()
-      if (!token || !API_URL) throw new Error('Please sign in in Settings first.')
+      if (!token || !API_URL) throw new AppError('err.signIn')
       const res = await fetch(`${API_URL}/api/ai/translateplus/${action}`, {
         method: 'POST',
         signal,
@@ -178,7 +179,7 @@ export const providers: Provider[] = [
     ready: () => window.puter?.auth.isSignedIn() ?? false,
     async *run(action, input, signal) {
       await loadPuter()
-      if (!window.puter) throw new Error('Puter did not load.')
+      if (!window.puter) throw new AppError('err.puter')
       const { system, prompt } = buildPrompt(action, input)
       const stream = await window.puter.ai.chat(
         [
@@ -200,7 +201,7 @@ export const providers: Provider[] = [
     ready: () => Boolean(useSettings.getState().openrouterKey),
     async *run(action, input, signal) {
       const { openrouterKey, openrouterModel } = useSettings.getState()
-      if (!openrouterKey) throw new Error('Connect OpenRouter in Settings first.')
+      if (!openrouterKey) throw new AppError('err.orFirst')
       const res = await chat(
         'https://openrouter.ai/api/v1/chat/completions',
         openrouterKey,
@@ -221,7 +222,7 @@ export const providers: Provider[] = [
     ready: () => Boolean(useSettings.getState().ownKey),
     async *run(action, input, signal) {
       const { ownKey, ownBaseUrl, ownModel } = useSettings.getState()
-      if (!ownKey) throw new Error('Add your API key in Settings first.')
+      if (!ownKey) throw new AppError('err.keyFirst')
       const res = await chat(
         `${ownBaseUrl.replace(/\/$/, '')}/chat/completions`,
         ownKey,

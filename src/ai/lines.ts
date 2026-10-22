@@ -1,3 +1,5 @@
+import { AppError } from '@/i18n/errors'
+
 /**
  * Turns a stream of text chunks into JSON objects, one per complete line.
  * Models sometimes wrap output in ``` fences or add chatter; those lines are skipped.
@@ -6,7 +8,7 @@ export async function* jsonLines<T>(chunks: AsyncIterable<string>): AsyncGenerat
   let buffer = ''
   for await (const chunk of chunks) {
     buffer += chunk
-    if (buffer.includes('[[error]]')) throw new Error('The AI stopped partway. Please try again.')
+    if (buffer.includes('[[error]]')) throw new AppError('err.stopped')
     let nl: number
     while ((nl = buffer.indexOf('\n')) >= 0) {
       const item = parseLine(buffer.slice(0, nl))
