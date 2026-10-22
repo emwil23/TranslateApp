@@ -1,4 +1,5 @@
 import { LoopVideo } from '@/components/LoopVideo'
+import { NearImage } from '@/components/NearImage'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n'
 import { prerendered, useReducedMotionSafe } from '@/lib/boot'
@@ -156,12 +157,10 @@ function Hero({ can3D, reduce }: { can3D: boolean; reduce: boolean }) {
           {/* The still fades out at its edges, so it sits on the page instead of in a box. */}
           <div className="relative mx-auto aspect-square w-full max-w-[34rem] [mask-image:radial-gradient(closest-side,black_72%,transparent)]">
             <img
-              src="/media/hero.webp"
-              srcSet="/media/hero-828.webp 828w, /media/hero.webp 1280w"
-              sizes="(min-width: 768px) 50vw, 100vw"
+              src="/media/hero-828.webp"
               alt=""
-              width={1280}
-              height={720}
+              width={828}
+              height={466}
               fetchPriority="high"
               className={cn(
                 'absolute inset-0 size-full object-cover object-[44%_50%] transition-opacity duration-1000',
@@ -379,13 +378,13 @@ function Story() {
             {active === 0 ? (
               <ToneDemo />
             ) : (
-              <img
+              <NearImage
                 key={active}
                 src={beats[active]?.art ?? ''}
                 alt=""
                 width={720}
                 height={540}
-                loading="lazy"
+
                 className="drop-block w-full rounded-3xl"
               />
             )}
@@ -409,12 +408,12 @@ function Story() {
               <p className="text-muted mt-4 max-w-md text-lg">{b.body}</p>
               <div className="mt-8 md:hidden">
                 {b.art ? (
-                  <img
+                  <NearImage
                     src={b.art}
                     alt=""
                     width={720}
                     height={540}
-                    loading="lazy"
+
                     className="w-full rounded-3xl"
                   />
                 ) : (
@@ -567,12 +566,12 @@ function DeveloperCard() {
   return (
     <section aria-labelledby="dev-h" className="mx-auto max-w-6xl px-6 pb-28">
       <div className="border-line bg-surface grid grid-cols-1 items-center gap-8 overflow-hidden rounded-3xl border md:grid-cols-[1fr_1.2fr]">
-        <img
+        <NearImage
           src="/media/developer.webp"
           alt={t('land.devAlt')}
           width={960}
           height={720}
-          loading="lazy"
+
           className="h-full w-full object-cover"
         />
         <div className="p-8">

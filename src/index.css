@@ -1,11 +1,10 @@
 @import 'tailwindcss';
 
-/* Latin UI fonts and Devanagari are always on the page; other scripts load on demand (src/lib/scriptFonts.ts).
+/* Latin UI fonts are always on the page. Devanagari comes with the app shell, and on public pages once the
+   browser is idle (src/components/SiteLayout.tsx), so its 120 kB never delays the first paint; other scripts load on demand (src/lib/scriptFonts.ts).
    @fontsource splits each font by unicode-range, so the browser only downloads the subsets a page uses. */
 @import '@fontsource-variable/fraunces';
 @import '@fontsource-variable/instrument-sans';
-@import '@fontsource-variable/noto-serif-devanagari';
-@import '@fontsource-variable/noto-sans-devanagari';
 
 /* Mono is only for small language-code labels: one weight, latin only. */
 @font-face {

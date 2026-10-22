@@ -19,7 +19,8 @@ export function cleanReply(reply: string, source: string): string {
       )
         s = parsed.text
     } catch {
-      // Still streaming, or not JSON after all: show it as it is.
+      // A multi-line reply in quotes isn't valid JSON; drop the quotes. Half-streamed JSON stays as it is.
+      if (s.length > 1 && s.startsWith('"') && s.endsWith('"')) s = s.slice(1, -1)
     }
   }
   return s

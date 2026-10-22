@@ -10,6 +10,10 @@ describe('cleanReply', () => {
     expect(cleanReply('"पहली पंक्ति\\nदूसरी"', 'First\nSecond')).toBe('पहली पंक्ति\nदूसरी')
   })
 
+  it('drops quotes around a multi-line reply', () => {
+    expect(cleanReply('"एक\nदो"', 'One\nTwo')).toBe('एक\nदो')
+  })
+
   it('keeps quotes the source had', () => {
     expect(cleanReply('"नमस्ते"', '"Hello"')).toBe('"नमस्ते"')
   })

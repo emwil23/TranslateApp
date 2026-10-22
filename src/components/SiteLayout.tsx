@@ -4,9 +4,20 @@ import { Heart } from 'lucide-react'
 import { Logo } from './Logo'
 import { UiLangToggle } from './UiLangToggle'
 import { Button } from './ui/button'
+import { useEffect } from 'react'
 
 export function SiteLayout() {
   const t = useT()
+  // The Hindi lines show in the system's Devanagari font first, then switch to Noto once the page is idle.
+  useEffect(() => {
+    const id = requestIdleCallback(
+      () => void import('@fontsource-variable/noto-serif-devanagari'),
+      {
+        timeout: 3000,
+      },
+    )
+    return () => cancelIdleCallback(id)
+  }, [])
   const links = [
     { to: '/', hash: 'how', label: t('nav.how') },
     { to: '/pro', label: t('nav.pro') },

@@ -8,6 +8,7 @@ import { chromium, devices } from 'playwright'
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:4180'
 const AI = 'http://ai.test/v1'
+const BR = '\n'
 const docs = (name) =>
   new URL(`../docs/${name}.png`, import.meta.url).pathname.replace(/^\/(\w:)/, '$1')
 const fixtures = JSON.parse(
@@ -25,7 +26,19 @@ function answer(prompt) {
       (f.input.tone === undefined || prompt.includes(toneHint[f.input.tone])) &&
       (f.input.to === undefined || prompt.includes(`into ${f.input.to}`)),
   )
-  return hit?.output ?? text
+  if (hit) return hit.output
+  // Camera text comes from OCR, so it may differ a little from the recorded menu: match it line by line.
+  const menuIn = fixtures.menu.input.text.split(BR)
+  const menuOut = fixtures.menu.output.split(BR)
+  const key = (l) =>
+    l
+      .toLowerCase()
+      .replace(/[^a-z]/g, '')
+      .slice(0, 6)
+  return String(text)
+    .split(BR)
+    .map((l) => menuOut[menuIn.findIndex((m) => key(m) && key(m) === key(l))] ?? l)
+    .join(BR)
 }
 const toneHint = {
   plain: 'faithfully',
@@ -92,11 +105,12 @@ async function translate(p, tone, respect) {
 {
   const { ctx, p } = await open()
   await p.goto(`${BASE}/`)
-  await p.waitForTimeout(4500) // the globe loads when the page is idle
-  await p.screenshot({ path: docs('landing') })
+  await p.locator('canvas').waitFor() // the globe loads when the page is idle
+  await p.waitForTimeout(900)
+  await p.screenshot({ path: docs('globe') })
   await p.waitForTimeout(3200) // the glyphs spell the first phrase
-  await p.screenshot({ path: docs('globe-phrase') })
-  await p.evaluate(() => window.scrollTo(0, document.querySelector('#how').offsetTop + 120))
+  await p.screenshot({ path: docs('landing') })
+  await p.evaluate(() => window.scrollTo(0, document.querySelector('#how').offsetTop - 40))
   await p.waitForTimeout(2000)
   await p.screenshot({ path: docs('story') })
   await p.goto(`${BASE}/developer`)
@@ -119,6 +133,7 @@ async function translate(p, tone, respect) {
   await p.screenshot({ path: docs('explain') })
   await p.keyboard.press('Escape')
   await p.getByRole('button', { name: 'Save to phrasebook' }).click()
+  await p.getByText('Saved to your phrasebook').waitFor()
 
   await p.goto(`${BASE}/app`)
   await p.getByRole('button', { name: 'Translate to: Hindi' }).click()

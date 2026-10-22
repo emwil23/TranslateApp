@@ -1,3 +1,6 @@
+// Hindi in the interface and in translations.
+import '@fontsource-variable/noto-sans-devanagari'
+import '@fontsource-variable/noto-serif-devanagari'
 import { useT, type Key } from '@/i18n'
 import { cn } from '@/lib/cn'
 import { Link, Outlet } from '@tanstack/react-router'
