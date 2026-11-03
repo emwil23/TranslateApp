@@ -6,7 +6,7 @@
 
 Translate into 125 languages, then choose how it should sound: formal, casual, friendly, WhatsApp or business email. Talk face to face, point the camera at a sign, drop in a Word file, and keep what you learn as flashcards. Plain translations run on your device; AI handles the tone.
 
-**[translateplus.ewstudios.workers.dev](https://translateplus.ewstudios.workers.dev)** · [The shared API](https://github.com/emwil23/ew-apps-api)
+**[translateplus.ewstudios.workers.dev](https://translateplus.ewstudios.workers.dev)**
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square)
@@ -183,7 +183,7 @@ npm test
 npm run e2e
 ```
 
-Node 24. Copy `.env.example` to `.env` and point `VITE_API_URL` at a running [ew-apps-api](https://github.com/emwil23/ew-apps-api) for the free AI option; without it, Translate+ still translates on the device in Chrome and offers Puter, OpenRouter or your own key. `npm run build` also prerenders the public pages, so it needs Playwright's Chromium (`npx playwright install chromium`). `npm run e2e` points "your own key" at a made-up host and answers it in the test, so it needs no keys or network; it covers translate → save → flashcard, tones and the glossary in the prompt, explain and alternatives, documents, the Hindi interface, and axe on every page in both themes. CI adds lint, typecheck and Lighthouse (≥ 0.95 in every category). Deploy with `VITE_API_URL=https://ewandtina-d9aa187632ca.herokuapp.com npm run build && npx wrangler deploy` (config in `wrangler.jsonc`).
+Node 24. Copy `.env.example` to `.env` and point `VITE_API_URL` at a running `ew-apps-api` (the shared backend) for the free AI option; without it, Translate+ still translates on the device in Chrome and offers Puter, OpenRouter or your own key. `npm run build` also prerenders the public pages, so it needs Playwright's Chromium (`npx playwright install chromium`). `npm run e2e` points "your own key" at a made-up host and answers it in the test, so it needs no keys or network; it covers translate → save → flashcard, tones and the glossary in the prompt, explain and alternatives, documents, the Hindi interface, and axe on every page in both themes. CI adds lint, typecheck and Lighthouse (≥ 0.95 in every category). Deploy with `VITE_API_URL=https://ewandtina-d9aa187632ca.herokuapp.com npm run build && npx wrangler deploy` (config in `wrangler.jsonc`).
 
 `node scripts/screenshots.mjs` retakes the pictures in `docs/` against a served build, replaying the recorded Gemini answers in `scripts/screenshot-fixtures.json`.
 
